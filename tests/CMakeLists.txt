@@ -26,10 +26,12 @@ set_target_properties(phosphor_test_support PROPERTIES
 # Тесты ядра: собираются без Gui и Widgets, поэтому граница слоёв проверяется линковкой.
 add_executable(phosphor_core_tests
     core_main.cpp
+    core/test_digital_frame.cpp
     core/test_loader.cpp
     core/test_store_cache.cpp
     core/test_time_axis.cpp
     core/test_time_mapper.cpp
+    core/test_value_format.cpp
     core/test_version.cpp)
 
 set_target_properties(phosphor_core_tests PROPERTIES

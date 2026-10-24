@@ -334,17 +334,17 @@ bxxxxxxxx "
     - соседние спаны с одинаковыми `kind` и `label` сливаются;
     - при `widthPx <= 0` или `window.end <= window.begin` — пустой `spans`.
 
-- [ ] **Step 1: Написать падающие тесты.** БД получается через `loadDump(kSmallVcd)`. Окно `{0, axis.toGlobal(20)}`, ширина 20 px, то есть 1 ns на пиксель.
+- [x] **Step 1: Написать падающие тесты.** БД получается через `loadDump(kSmallVcd)`. Окно `{0, axis.toGlobal(20)}`, ширина 20 px, то есть 1 ns на пиксель.
   - `ValueFormat.HexAndSigned`: `data` в 10 ns даёт `"a5"` в HEX и `"-91"` в DEC signed. `vout` в 10 ns даёт `"0.5"`.
   - `DigitalFrame.ClockSpans`: `clk` даёт `isBit == true` и спаны `{0,5,LOW}`, `{5,10,HIGH}`, `{10,15,LOW}`, `{15,20,HIGH}`.
   - `DigitalFrame.BusLabelsAndX`: `data` даёт `{0,10,VALUE,"00"}`, `{10,20,VALUE,"a5"}`. В окне `{0, toGlobal(30)}` (30 px) последний спан `{20,30,X,"xx"}`.
   - `DigitalFrame.DensePixel`: ширина 1 px на окне `{0, toGlobal(20)}`. У `clk` изменения в 5, 10, 15 ns дают один спан `{0,1,DENSE}`. На ширине 4 px (5 ns на пиксель) у каждого пикселя ≤ 1 изменения, поэтому `DENSE` нет.
   - `DigitalFrame.WindowOutsideData`: окно `{toGlobal(1000), toGlobal(2000)}` даёт один спан последнего значения на всю ширину. Окно с отрицательным началом `{-toGlobal(10), toGlobal(0)}` даёт `NONE` до 0. Это Review Focus 3.
   - `DigitalFrame.ZeroWidthEmpty`: `widthPx = 0` дают пустые `spans`, окно `{5, 5}` — тоже. Это Review Focus 4.
-- [ ] **Step 2: Прогнать.** Запуск `ctest --preset conan-debug -R 'ValueFormat|DigitalFrame'`, ожидается FAIL.
-- [ ] **Step 3: Реализовать.** Один проход курсором, текущий пиксель и счётчик изменений в нём. Строку `label` формировать только при закрытии спана.
-- [ ] **Step 4: Прогнать.** Ожидается PASS.
-- [ ] **Step 5: Стоп и коммит.** Показать итог и проверки, дождаться «продолжить», затем `git commit -m "add: форматирование значений и прореживание цифровой строки"`
+- [x] **Step 2: Прогнать.** Запуск `ctest --preset conan-debug -R 'ValueFormat|DigitalFrame'`, ожидается FAIL.
+- [x] **Step 3: Реализовать.** Один проход курсором, текущий пиксель и счётчик изменений в нём. Строку `label` формировать только при закрытии спана.
+- [x] **Step 4: Прогнать.** Ожидается PASS.
+- [x] **Step 5: Стоп и коммит.** Показать итог и проверки, дождаться «продолжить», затем `git commit -m "add: форматирование значений и прореживание цифровой строки"`
 
 ---
 
