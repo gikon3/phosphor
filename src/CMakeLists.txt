@@ -20,6 +20,7 @@ target_sources(phosphor_core
     core/digital_frame.cpp
     core/error.cpp
     core/loader.cpp
+    core/session.cpp
     core/store_cache.cpp
     core/time_axis.cpp
     core/time_mapper.cpp
@@ -34,6 +35,10 @@ target_link_libraries(phosphor_core
     PUBLIC
     wasafe::wasafe_vcd
     Qt6::Core)
+
+# В API wasafe есть имя signals, а одноимённый макрос Qt ломает его заголовки.
+# Вместо ключевых слов — Q_SIGNALS, Q_SLOTS, Q_EMIT.
+target_compile_definitions(phosphor_core PUBLIC QT_NO_KEYWORDS)
 
 set_target_properties(phosphor_core PROPERTIES OUTPUT_NAME phosphor-core)
 

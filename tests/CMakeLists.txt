@@ -28,6 +28,7 @@ add_executable(phosphor_core_tests
     core_main.cpp
     core/test_digital_frame.cpp
     core/test_loader.cpp
+    core/test_session.cpp
     core/test_store_cache.cpp
     core/test_time_axis.cpp
     core/test_time_mapper.cpp
