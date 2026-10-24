@@ -11,6 +11,8 @@ include(GoogleTest)
 # Тесты ядра: собираются без Gui и Widgets, поэтому граница слоёв проверяется линковкой.
 add_executable(phosphor_core_tests
     core_main.cpp
+    core/test_time_axis.cpp
+    core/test_time_mapper.cpp
     core/test_version.cpp)
 
 set_target_properties(phosphor_core_tests PROPERTIES

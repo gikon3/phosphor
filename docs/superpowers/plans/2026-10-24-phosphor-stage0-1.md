@@ -27,6 +27,7 @@ Qt 6 (Core, Widgets, Test), GoogleTest, Python 3 (генератор VCD).
   закрытые поля с суффиксом `_` (как в wasafe).
 - Модель ошибок — исключения. `Phosphor::Error : std::runtime_error` для своих ошибок.
   Ошибки wasafe (`WaSafe::Exception`) пробрасываются как есть.
+- Строковые литералы в коде — на английском, без кириллицы; видимый пользователю текст идёт через `tr()`, русский появляется только в файлах переводов.
 - Комментарии на русском. Они описывают контракт и причину. Не ссылаются на
   прошлую реализацию, на код в других файлах и на вызывающих.
 - Структура классов по глобальным правилам: `public` → `protected` → `private`;
@@ -120,18 +121,18 @@ bench/CMakeLists.txt, bench/phosphor_bench.cpp
   - `class Phosphor::MainWindow : public QMainWindow` (пока пустое);
   - две цели тестов: `phosphor_core_tests` (файл `phosphor-core-tests`, `main` из `tests/core_main.cpp` с `QCoreApplication`, линкует только `phosphor::core` — граница слоёв проверяется сборкой) и `phosphor_ui_tests` (файл `phosphor-ui-tests`, `main` из `tests/ui_main.cpp` с `QApplication`; без `QT_QPA_PLATFORM` ставит `offscreen`; ctest тоже задаёт `QT_QPA_PLATFORM=offscreen`).
 
-- [ ] **Step 1: Привести `conanfile.py` к приложению.** Убрать `package_info` (библиотеки у приложения нет), `cmake/*` из `exports_sources`, `rmdir lib/cmake` из `package()`. `layout()` оставить с `cmake_layout`.
-- [ ] **Step 2: Корневой `CMakeLists.txt`.**
+- [x] **Step 1: Привести `conanfile.py` к приложению.** Убрать `package_info` (библиотеки у приложения нет), `cmake/*` из `exports_sources`, `rmdir lib/cmake` из `package()`. `layout()` оставить с `cmake_layout`.
+- [x] **Step 2: Корневой `CMakeLists.txt`.**
   - Опции: `PHOSPHOR_BUILD_TESTS` (как сейчас), `PHOSPHOR_BUILD_BENCH` (OFF).
   - Найти Qt: `find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Test)`, затем `qt_standard_project_setup()`.
   - `add_subdirectory(bench)` под опцией `PHOSPHOR_BUILD_BENCH`.
-- [ ] **Step 3: `src/CMakeLists.txt`.**
+- [x] **Step 3: `src/CMakeLists.txt`.**
   - Три цели из Interfaces.
   - `configure_file` в `include/phosphor/`.
   - `install(TARGETS phosphor RUNTIME ...)` под `PHOSPHOR_INSTALL`. Всё про `WASAFE_VCD_*` и экспорт cmake-пакета удалить.
-- [ ] **Step 4: Переписать `version.hpp.in`/`config.hpp.in`** в пространство имён `Phosphor`.
-- [ ] **Step 5: Написать `main.cpp`.** Сделать `QApplication` и `QCommandLineParser` с `--version` (печатает `phosphor <kString>`) и позиционными `dump` (пока игнорируются), затем показать `MainWindow`.
-- [ ] **Step 6: Написать падающий тест** `tests/core/test_version.cpp`:
+- [x] **Step 4: Переписать `version.hpp.in`/`config.hpp.in`** в пространство имён `Phosphor`.
+- [x] **Step 5: Написать `main.cpp`.** Сделать `QApplication` и `QCommandLineParser` с `--version` (печатает `phosphor <kString>`) и позиционными `dump` (пока игнорируются), затем показать `MainWindow`.
+- [x] **Step 6: Написать падающий тест** `tests/core/test_version.cpp`:
 
 ```cpp
 TEST(Version, MatchesProject) {
@@ -142,13 +143,13 @@ TEST(Version, MatchesProject) {
 
 `tests/CMakeLists.txt`: файлы перечисляются явно, без `file(GLOB)`. `phosphor_core_tests` — `core_main.cpp` + `core/…`, линкует `phosphor::core`, `GTest::gtest`, `Qt6::Test`; `phosphor_ui_tests` — `ui_main.cpp` + `app/…`, линкует `phosphor::core`, `phosphor::ui`, `GTest::gtest`, `Qt6::Test`. Дальше `gtest_discover_tests(... PROPERTIES ENVIRONMENT QT_QPA_PLATFORM=offscreen DISCOVERY_TIMEOUT 30)`.
 
-- [ ] **Step 7: Собрать и прогнать.**
+- [x] **Step 7: Собрать и прогнать.**
   - Запуск: команды сборки из Global Constraints, затем `QT_QPA_PLATFORM=offscreen build/Debug/bin/phosphor --version`.
   - Ожидается: тест `Version.MatchesProject` PASS, вывод `phosphor 0.1.0`.
-- [ ] **Step 8: Проверить формат.**
+- [x] **Step 8: Проверить формат.**
   - Запуск: `clang-format --dry-run --Werror $(git ls-files 'src/*.cpp' 'src/*.hpp' 'tests/*.cpp' 'tests/*.hpp')`.
   - Ожидается: без вывода.
-- [ ] **Step 9: Стоп и коммит.** Показать итог и проверки, дождаться «продолжить», затем `git commit -m "build: скелет Phosphor — Qt6, цели core/ui/app, чистка следов wasafe-vcd"`
+- [x] **Step 9: Стоп и коммит.** Показать итог и проверки, дождаться «продолжить», затем `git commit -m "build: скелет Phosphor — Qt6, цели core/ui/app, чистка следов wasafe-vcd"`
 
 ---
 
@@ -174,7 +175,7 @@ TEST(Version, MatchesProject) {
   - `TimeWindow scrollBy(TimeWindow w, GlobalTime delta) noexcept;` — с насыщением, ширина сохраняется.
   - При `widthPx <= 0`: `timeToPixel` возвращает 0, `pixelToTime` возвращает `w.begin`.
 
-- [ ] **Step 1: Написать падающие тесты.**
+- [x] **Step 1: Написать падающие тесты.**
 
 ```cpp
 TEST(TimeAxis, ConvertsNanoseconds) {
@@ -209,12 +210,12 @@ TEST(TimeMapper, ZeroWidthIsSafe) {
 TEST(TimeMapper, PixelRoundTrip) { EXPECT_EQ(Phosphor::pixelToTime({1000, 2000}, 1000, Phosphor::timeToPixel({1000, 2000}, 1000, 1500)), 1500); }
 ```
 
-- [ ] **Step 2: Прогнать и убедиться, что падают.**
+- [x] **Step 2: Прогнать и убедиться, что падают.**
   - Запуск: `cmake --build --preset conan-debug && ctest --preset conan-debug -R 'TimeAxis|FormatTime|TimeMapper'`.
   - Ожидается: ошибка компиляции, заголовков нет.
-- [ ] **Step 3: Реализовать** `time_axis` и `time_mapper` по интерфейсам выше. Внутри — арифметика `__int128` или `std::mul_overflow`-аналог с насыщением; на MSVC `__int128` нет, поэтому через проверку `a > max / b`.
-- [ ] **Step 4: Прогнать.** Те же тесты, ожидается PASS.
-- [ ] **Step 5: Стоп и коммит.** Показать итог и проверки, дождаться «продолжить», затем `git commit -m "add: общая ось времени в fs и геометрия окна"`
+- [x] **Step 3: Реализовать** `time_axis` и `time_mapper` по интерфейсам выше. Внутри — арифметика `__int128` или `std::mul_overflow`-аналог с насыщением; на MSVC `__int128` нет, поэтому через проверку `a > max / b`.
+- [x] **Step 4: Прогнать.** Те же тесты, ожидается PASS.
+- [x] **Step 5: Стоп и коммит.** Показать итог и проверки, дождаться «продолжить», затем `git commit -m "add: общая ось времени в fs и геометрия окна"`
 
 ---
 
@@ -473,7 +474,7 @@ bxxxxxxxx "
 - Consumes: `Session`, `SignalRef`, `View`.
 - Produces:
   - `class HierarchyModel : public QAbstractItemModel` с конструктором `HierarchyModel(Session&, QObject* parent = nullptr)`:
-    - корни — источники в порядке `sourceIds()`, текст `label`, во время загрузки с суффиксом « (загрузка…)», при ошибке « (ошибка)» и `Qt::ToolTipRole` с текстом ошибки;
+    - корни — источники в порядке `sourceIds()`, текст `label`, во время загрузки с суффиксом `tr(" (loading…)")`, при ошибке `tr(" (error)")` и `Qt::ToolTipRole` с текстом ошибки;
     - дети источника — scope'ы корня, затем их scope'ы и сигналы рекурсивно;
     - композиты без собственного потока раскрываются в `children()`;
     - узлы строятся лениво, через `canFetchMore`/`fetchMore` либо по первому `rowCount`;
@@ -481,9 +482,9 @@ bxxxxxxxx "
   - `std::optional<SignalRef> HierarchyModel::signalRef(const QModelIndex&) const;` — значение только у сигналов, у которых `hasOwnStream()`.
   - `QMimeData* HierarchyModel::mimeData(const QModelIndexList&) const`, MIME `application/x-phosphor-signals`. Кодирование и разбор — `QByteArray encodeSignalRefs(const std::vector<SignalRef>&)` и `std::vector<SignalRef> decodeSignalRefs(const QByteArray&)` в `signal_mime.hpp` (JSON-массив `{"source":…, "path":…}`).
   - `MainWindow(Session&, View&, Renderer&)`:
-    - меню «Файл → Открыть…» (`Ctrl+O`, несколько файлов, фильтр `*.vcd`) и «Выход»;
-    - слева док «Иерархия» с `QTreeView`. Enter или двойной клик добавляет выбранные сигналы в конец `View`, перетаскивание тоже поддерживается;
-    - статус-бар: на каждый загружаемый источник неопределённый `QProgressBar` и кнопка «Отмена» (`cancelLoad`);
+    - меню `tr("&File")` → `tr("&Open…")` (`Ctrl+O`, несколько файлов, фильтр `*.vcd`) и `tr("E&xit")`;
+    - слева док `tr("Hierarchy")` с `QTreeView`. Enter или двойной клик добавляет выбранные сигналы в конец `View`, перетаскивание тоже поддерживается;
+    - статус-бар: на каждый загружаемый источник неопределённый `QProgressBar` и кнопка `tr("Cancel")` (`cancelLoad`);
     - ошибка загрузки показывается `QMessageBox::warning` с текстом;
     - на `sourceReady` — `renderer.addSource(id, session.takeRenderDatabase(id), *session.axis(id))`. Если окно вида ещё не задано, ставится `totalRange()`;
     - геометрия и `saveState()` хранятся в `QSettings("phosphor", "phosphor")`.
@@ -524,7 +525,7 @@ bxxxxxxxx "
     - принимает drop MIME `application/x-phosphor-signals` (вставка в позицию под курсором мыши);
     - Delete удаляет выделенные строки, перетаскивание строки в колонке имён вызывает `moveRow`;
     - контекстное меню строки: Bin / Oct / Hex / Dec / Signed Dec → `setFormat`.
-  - `void WavePanel::requestFrame();` — на любое `rowsChanged/windowChanged/cursorsChanged`, `resizeEvent` и `sourceReady` собирает `FrameRequest` с растущим `generation`. Строки разрешаются `hierarchyDb(source)->find(path)`; ненайденные идут с невалидным `NodeId` и подписываются в колонке имён «(нет в дампе)».
+  - `void WavePanel::requestFrame();` — на любое `rowsChanged/windowChanged/cursorsChanged`, `resizeEvent` и `sourceReady` собирает `FrameRequest` с растущим `generation`. Строки разрешаются `hierarchyDb(source)->find(path)`; ненайденные идут с невалидным `NodeId` и подписываются в колонке имён `tr("(not in dump)")`.
   - `class WaveCanvas : public QWidget` рисует последний `FrameResult`:
     - бит — ступенька;
     - шина — шестиугольники с `label`, текст обрезан с `…` и не рисуется уже 2 символов;
@@ -541,7 +542,7 @@ bxxxxxxxx "
 
 - [ ] **Step 1: Написать падающие тесты** (offscreen; Session + Renderer с `kSmallVcd`; `QSignalSpy` на `frameReady`).
   - `WavePanel.AddsRowsAndShowsValues`: вставка `top.clk`, `top.data` в `View`, `setCursorA(toGlobal(12))`. После кадра текст колонки значений у `data` содержит `"a5"`. Видимые тексты колонок доступны через `QString WavePanel::valueText(std::size_t row) const`, она объявляется в этой задаче.
-  - `WavePanel.MissingSignalMarked`: строка `{id, "top.nope"}` даёт `QString WavePanel::nameText(std::size_t row) const`, содержащий «нет в дампе».
+  - `WavePanel.MissingSignalMarked`: строка `{id, "top.nope"}` даёт `QString WavePanel::nameText(std::size_t row) const`, содержащий `"not in dump"`.
   - `WavePanel.CtrlWheelZooms`: синтетический `QWheelEvent` с `Ctrl` над серединой холста уменьшает `view.window()`. Середина времени окна остаётся в пределах 1 % ширины.
   - `WavePanel.HiddenCanvasNoCrash`: `resize(0, 0)` + `requestFrame()` + обработка событий — без падения. Это Review Focus 4.
 - [ ] **Step 2: Прогнать.** Запуск `ctest --preset conan-debug -R WavePanel`, ожидается FAIL.
@@ -588,6 +589,7 @@ bxxxxxxxx "
 ## Что сознательно не входит в этот план
 
 Этапы 2–6 спеки получат свои планы:
+
 - сводки min/max и прогресс разбора в wasafe;
 - форматы и составные сигналы, папки, undo/redo;
 - аналоговые панели;
