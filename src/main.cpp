@@ -6,7 +6,7 @@
 #include "phosphor/version.hpp"
 
 int main(int argc, char* argv[]) {
-    QApplication app(argc, argv);
+    const QApplication app{argc, argv};
     QApplication::setApplicationName(QStringLiteral("phosphor"));
     QApplication::setApplicationVersion(
             QString::fromUtf8(Phosphor::Version::kString.data(), Phosphor::Version::kString.size()));
@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
     QCommandLineParser parser;
     parser.addHelpOption();
     parser.addVersionOption();
-    parser.addPositionalArgument(QStringLiteral("dump"), QStringLiteral("Файл дампа для открытия."));
+    parser.addPositionalArgument(QStringLiteral("dump"), QStringLiteral("Dump file to open."));
     parser.process(app);
 
     Phosphor::MainWindow window;

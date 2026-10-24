@@ -5,10 +5,9 @@
 
 int main(int argc, char* argv[]) {
     // Без заданной платформы Qt на хосте без дисплея аварийно завершается ещё при создании QApplication.
-    if (!qEnvironmentVariableIsSet("QT_QPA_PLATFORM")) {
+    if (!qEnvironmentVariableIsSet("QT_QPA_PLATFORM"))
         qputenv("QT_QPA_PLATFORM", "offscreen");
-    }
-    QApplication app(argc, argv);
+    const QApplication app{argc, argv};
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
