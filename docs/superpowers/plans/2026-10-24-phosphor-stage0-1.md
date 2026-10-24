@@ -260,14 +260,14 @@ r0.5 #
 bxxxxxxxx "
 ```
 
-- [ ] **Step 1: Написать падающие тесты.**
+- [x] **Step 1: Написать падающие тесты.**
   - `StoreCache.SameDumpSamePath`: два вызова дают одинаковый путь, он лежит в `directory()` и заканчивается на `.wsfstore`.
   - `StoreCache.RewrittenDumpNewPath`: переписать файл с другим содержимым и `last_write_time` + 2 с, путь меняется. Это Review Focus 2.
   - `StoreCache.MissingDumpThrows`: `EXPECT_THROW(..., Phosphor::Error)`.
-- [ ] **Step 2: Прогнать.** Запуск `ctest --preset conan-debug -R StoreCache`, ожидается FAIL (не компилируется).
-- [ ] **Step 3: Реализовать** `StoreCache` и `temp_files`.
-- [ ] **Step 4: Прогнать.** Ожидается PASS.
-- [ ] **Step 5: Стоп и коммит.** Показать итог и проверки, дождаться «продолжить», затем `git commit -m "add: кэш store по ключу путь+размер+mtime"`
+- [x] **Step 2: Прогнать.** Запуск `ctest --preset conan-debug -R StoreCache`, ожидается FAIL (не компилируется).
+- [x] **Step 3: Реализовать** `StoreCache` и `temp_files`.
+- [x] **Step 4: Прогнать.** Ожидается PASS.
+- [x] **Step 5: Стоп и коммит.** Показать итог и проверки, дождаться «продолжить», затем `git commit -m "add: кэш store по ключу путь+размер+mtime"`
 
 ---
 

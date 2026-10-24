@@ -17,6 +17,7 @@ target_compile_features(phosphor_core PUBLIC cxx_std_23)
 target_sources(phosphor_core
     PRIVATE
     core/error.cpp
+    core/store_cache.cpp
     core/time_axis.cpp
     core/time_mapper.cpp)
 

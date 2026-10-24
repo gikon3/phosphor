@@ -8,9 +8,25 @@ find_package(GTest REQUIRED)
 
 include(GoogleTest)
 
+# Общие помощники тестов: временные файлы и тестовый VCD.
+add_library(phosphor_test_support STATIC
+    support/temp_files.cpp)
+
+target_include_directories(phosphor_test_support
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR})
+
+target_link_libraries(phosphor_test_support
+    PUBLIC
+    phosphor::core)
+
+set_target_properties(phosphor_test_support PROPERTIES
+    OUTPUT_NAME phosphor-test-support)
+
 # Тесты ядра: собираются без Gui и Widgets, поэтому граница слоёв проверяется линковкой.
 add_executable(phosphor_core_tests
     core_main.cpp
+    core/test_store_cache.cpp
     core/test_time_axis.cpp
     core/test_time_mapper.cpp
     core/test_version.cpp)
@@ -21,6 +37,7 @@ set_target_properties(phosphor_core_tests PROPERTIES
 target_link_libraries(phosphor_core_tests
     PRIVATE
     phosphor::core
+    phosphor_test_support
     GTest::gtest
     Qt6::Test)
 
@@ -40,6 +57,7 @@ target_link_libraries(phosphor_ui_tests
     PRIVATE
     phosphor::core
     phosphor::ui
+    phosphor_test_support
     GTest::gtest
     Qt6::Test)
 
