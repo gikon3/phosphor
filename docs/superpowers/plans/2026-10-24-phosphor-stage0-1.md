@@ -44,7 +44,6 @@ Qt 6 (Core, Widgets, Test), GoogleTest, Python 3 (генератор VCD).
 Команды сборки и тестов (Linux, существующий пресет):
 
 ```bash
-cd /home/agukov/_work/phosphor
 .venv/bin/conan install . --build=missing -s compiler.cppstd=23 -s build_type=Debug
 cmake --preset conan-debug
 cmake --build --preset conan-debug
@@ -377,18 +376,18 @@ bxxxxxxxx "
   - Загрузка идёт в `std::jthread` на источник. Результат (две БД и ось) возвращается в поток `Session` через `QMetaObject::invokeMethod(this, ..., Qt::QueuedConnection)`. `Database` только перемещаемая, поэтому её передают в `std::shared_ptr`.
   - `SourceId` регистрируется `qRegisterMetaType`.
 
-- [ ] **Step 1: Написать падающие тесты** (`QSignalSpy::wait(5000)`).
+- [x] **Step 1: Написать падающие тесты** (`QSignalSpy::wait(5000)`).
   - `Session.LoadsDump`: `openDump(kSmallVcd)` → `sourceReady`. `info()->state == READY`, `hierarchyDb(id)->find("top.data")` есть, `totalRange()->begin == 0` и `totalRange()->end >= axis->toGlobal(20)`.
   - `Session.FailedSourceDoesNotAffectOthers`: исправный и битый дампы. Приходит `sourceFailed` с непустым текстом, исправный `READY`, `takeRenderDatabase(good)` валиден. Это Review Focus 5.
   - `Session.CancelRemovesSource`: открыть, сразу `cancelLoad`, дождаться `sourceRemoved`, в `sourceIds()` источника нет. Если загрузка успела завершиться, это тоже допустимо: тогда тест вызывает `removeSource` и проверяет то же.
   - `Session.DestructorJoinsLoads`: `openDump` и немедленное уничтожение `Session` — без падения и без утечек под ASan.
-- [ ] **Step 2: Прогнать.** Запуск `ctest --preset conan-debug -R Session`, ожидается FAIL.
-- [ ] **Step 3: Реализовать** `Session`.
-- [ ] **Step 4: Прогнать.** Ожидается PASS. Дополнительно один прогон с профилем `clang-tsan`:
-  - `.venv/bin/conan install . --output-folder=build-tsan -pr clang-tsan -s compiler.cppstd=23 -s build_type=Debug --build=missing`;
-  - конфигурация и сборка этого каталога, затем `ctest -R Session`;
+- [x] **Step 2: Прогнать.** Запуск `ctest --preset conan-debug -R Session`, ожидается FAIL.
+- [x] **Step 3: Реализовать** `Session`.
+- [x] **Step 4: Прогнать.** Ожидается PASS. Дополнительно один прогон с профилем `clang-tsan`:
+  - предусловие: TSan-варианты wasafe и wasafe-vcd собраны в их репозиториях (`build/debug-tsan`);
+  - `.venv/bin/conan install . -pr clang-tsan -s compiler.cppstd=23 --build=missing`, затем `cmake --preset conan-debug-tsan`, `cmake --build --preset conan-debug-tsan`, `ctest --preset conan-debug-tsan -R Session`;
   - ожидается PASS без отчётов TSan.
-- [ ] **Step 5: Стоп и коммит.** Показать итог и проверки, дождаться «продолжить», затем `git commit -m "add: сессия с фоновой загрузкой источников"`
+- [x] **Step 5: Стоп и коммит.** Показать итог и проверки, дождаться «продолжить», затем `git commit -m "add: сессия с фоновой загрузкой источников"`
 
 ---
 

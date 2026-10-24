@@ -3,8 +3,8 @@
 Дата: 2026-10-24. Статус: черновик на согласование.
 
 Phosphor — настольный просмотрщик временных диаграмм на Qt6 поверх библиотек
-[wasafe](../../../../wasafe) (хранение и ленивый доступ к значениям) и
-[wasafe-vcd](../../../../wasafe-vcd) (разбор VCD). Платформы — Linux и Windows.
+[wasafe](https://github.com/gikon3/wasafe) (хранение и ленивый доступ к значениям) и
+[wasafe-vcd](https://github.com/gikon3/wasafe-vcd) (разбор VCD). Платформы — Linux и Windows.
 
 Пометка **[решение спеки]** означает выбор автора документа, который отдельно с
 заказчиком не обсуждался; остальное — согласовано.
@@ -407,8 +407,8 @@ Phosphor — настольный просмотрщик временных ди
 ## 9. Текущее состояние репозитория
 
 - `conanfile.py`, `CMakeLists.txt`, `src/main.cpp` (пустой `main`),
-  `tests/test_empty.cpp`; зависимость `wasafe-vcd/0.1.0` (editable из
-  `../wasafe-vcd`, она тянет `../wasafe`).
+  `tests/test_empty.cpp`; зависимость `wasafe-vcd/0.1.0` (она тянет
+  `wasafe`).
 - Скелет скопирован из wasafe-vcd, остались следы: `src/version.hpp.in` и
   `src/config.hpp.in` в пространстве имён `WaSafe::Vcd`, `version.hpp`
   генерируется в `include/wasafe_vcd/`, установка в `src/CMakeLists.txt`
