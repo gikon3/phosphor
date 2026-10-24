@@ -24,7 +24,8 @@ target_sources(phosphor_core
     core/store_cache.cpp
     core/time_axis.cpp
     core/time_mapper.cpp
-    core/value_format.cpp)
+    core/value_format.cpp
+    core/view.cpp)
 
 target_include_directories(phosphor_core
     PUBLIC

@@ -33,7 +33,8 @@ add_executable(phosphor_core_tests
     core/test_time_axis.cpp
     core/test_time_mapper.cpp
     core/test_value_format.cpp
-    core/test_version.cpp)
+    core/test_version.cpp
+    core/test_view.cpp)
 
 set_target_properties(phosphor_core_tests PROPERTIES
     OUTPUT_NAME phosphor-core-tests)

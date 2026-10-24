@@ -405,9 +405,9 @@ bxxxxxxxx "
   - `struct SignalRef { SourceId source; std::string path; friend bool operator==(const SignalRef&, const SignalRef&) = default; };` — путь берётся из `WaSafe::Signal::fullPath()`. Ссылка по пути, а не по `NodeId`, переживает переиндексацию.
   - `struct Row { SignalRef signal; RowFormat format; };`
   - `class View : public QObject`:
-    - `const std::vector<Row>& rows() const noexcept;`
+    - `std::span<const Row> rows() const noexcept;` — вид действителен до следующего изменения строк
     - `void insertRows(std::size_t at, std::vector<Row> rows);` (`at` обрезается до `size()`);
-    - `void removeRows(std::vector<std::size_t> indices);`
+    - `void removeRows(std::span<const std::size_t> indices);`
     - `void moveRow(std::size_t from, std::size_t to);`
     - `void setFormat(std::size_t row, RowFormat f);`
     - `TimeWindow window() const noexcept;` и `void setWindow(TimeWindow w);` — ширина не меньше `kMinWindowSpan`;
@@ -415,14 +415,14 @@ bxxxxxxxx "
     - сигналы `rowsChanged()`, `windowChanged()`, `cursorsChanged()` — испускаются только при фактическом изменении.
   - Эти мутаторы — единственный способ менять вид. На этапе 3 их обернёт undo-стек.
 
-- [ ] **Step 1: Написать падающие тесты.**
+- [x] **Step 1: Написать падающие тесты.**
   - `View.InsertMoveRemove`: вставка трёх строк, `moveRow(0, 2)`, проверка порядка, `removeRows({0, 2})` оставляет одну нужную строку. Испущено ровно 3 `rowsChanged`.
   - `View.WindowClampsMinSpan`: `setWindow({10, 10})` даёт `window().end - window().begin == kMinWindowSpan`.
   - `View.NoSignalOnSameValue`: повторный `setCursorA(5)` не испускает `cursorsChanged`.
-- [ ] **Step 2: Прогнать.** Запуск `ctest --preset conan-debug -R View`, ожидается FAIL.
-- [ ] **Step 3: Реализовать** `View`.
-- [ ] **Step 4: Прогнать.** Ожидается PASS.
-- [ ] **Step 5: Стоп и коммит.** Показать итог и проверки, дождаться «продолжить», затем `git commit -m "add: модель вида — строки, окно времени, курсоры"`
+- [x] **Step 2: Прогнать.** Запуск `ctest --preset conan-debug -R View`, ожидается FAIL.
+- [x] **Step 3: Реализовать** `View`.
+- [x] **Step 4: Прогнать.** Ожидается PASS.
+- [x] **Step 5: Стоп и коммит.** Показать итог и проверки, дождаться «продолжить», затем `git commit -m "add: модель вида — строки, окно времени, курсоры"`
 
 ---
 
