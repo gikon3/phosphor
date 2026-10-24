@@ -53,8 +53,6 @@ public:
     void cancelLoad(SourceId id);
 
     // Удаляет готовый или сломанный источник сразу. Загружающийся — как cancelLoad.
-    // К моменту sourceRemoved источника в сессии уже нет, и полученные для него указатели
-    // недействительны.
     void removeSource(SourceId id);
 
     // В порядке открытия.
@@ -82,6 +80,14 @@ Q_SIGNALS:
     void sourceAdded(Phosphor::SourceId id);
     void sourceReady(Phosphor::SourceId id);
     void sourceFailed(Phosphor::SourceId id, const QString& error);
+    // Любое удаление источника — removeSource или завершение отменённой загрузки — испускает пару
+    // сигналов. В sourceAboutToBeRemoved источник ещё в сессии и его иерархию можно обойти: это
+    // последний момент, когда полученные для него указатели и хэндлы действительны. Поэтому
+    // обработчик подключается прямым соединением в потоке сессии: через очередь он выполнится, когда
+    // источник уже уничтожен, hierarchyDb вернёт nullptr, а полученные раньше указатели и хэндлы
+    // будут висячими. Удалять или открывать источники из обработчика нельзя. К sourceRemoved
+    // источника уже нет.
+    void sourceAboutToBeRemoved(Phosphor::SourceId id);
     void sourceRemoved(Phosphor::SourceId id);
 
 private:

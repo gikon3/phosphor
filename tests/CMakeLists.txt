@@ -54,7 +54,9 @@ gtest_discover_tests(phosphor_core_tests
 
 # Тесты виджетов.
 add_executable(phosphor_ui_tests
-    ui_main.cpp)
+    ui_main.cpp
+    app/test_hierarchy_model.cpp
+    app/test_main_window.cpp)
 
 set_target_properties(phosphor_ui_tests PROPERTIES
     OUTPUT_NAME phosphor-ui-tests)

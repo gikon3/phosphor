@@ -50,7 +50,9 @@ add_library(phosphor::ui ALIAS phosphor_ui)
 
 target_sources(phosphor_ui
     PRIVATE
-    app/main_window.cpp)
+    app/hierarchy_model.cpp
+    app/main_window.cpp
+    app/signal_mime.cpp)
 
 target_link_libraries(phosphor_ui
     PUBLIC

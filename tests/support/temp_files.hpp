@@ -27,4 +27,7 @@ std::filesystem::path writeFile(const std::filesystem::path& p, std::string_view
 // Небольшой VCD с одноразрядным, векторным и вещественным сигналами.
 extern const std::string_view kSmallVcd;
 
+// Полный заголовок и битая метка времени: такой дамп wasafe-vcd отвергает.
+extern const std::string_view kBrokenVcd;
+
 }  // namespace Phosphor::Test

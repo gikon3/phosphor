@@ -69,4 +69,8 @@ r0.5 #
 bxxxxxxxx "
 )";
 
+const std::string_view kBrokenVcd =
+        "$timescale 1ns $end\n$scope module top $end\n$var wire 1 ! a $end\n$upscope $end\n"
+        "$enddefinitions $end\n#abc\n1!\n";
+
 }  // namespace Phosphor::Test

@@ -492,17 +492,17 @@ bxxxxxxxx "
     - позиционные `dump` открываются через `openDump`.
   - `shortcuts.hpp` — `inline` константы `QKeySequence` всех действий этапа (открыть, приблизить, отдалить, вписать всё, курсор A/B к началу окна). Раскладка предварительная: в спеке ориентир SimVision/Virtuoso, сверка с ними будет отдельно.
 
-- [ ] **Step 1: Написать падающие тесты** (Session с `kSmallVcd`, ждать `sourceReady`).
+- [x] **Step 1: Написать падающие тесты** (Session с `kSmallVcd`, ждать `sourceReady`).
   - `HierarchyModel.ShowsSourceScopesSignals`: один корень с текстом имени файла, под ним `top`, под `top` три строки `clk`, `data`, `vout`.
   - `HierarchyModel.SignalRefForLeaf`: у индекса `data` `signalRef` равен `{id, "top.data"}`, у индекса `top` — `nullopt`.
   - `HierarchyModel.MimeRoundTrip`: `decodeSignalRefs(encodeSignalRefs(v)) == v`, а `mimeData({clkIdx, dataIdx})` содержит обе ссылки.
-- [ ] **Step 2: Прогнать.** Запуск `ctest --preset conan-debug -R HierarchyModel`, ожидается FAIL.
-- [ ] **Step 3: Реализовать** модель, MIME, окно и `main.cpp`.
-- [ ] **Step 4: Прогнать тесты.** Ожидается PASS.
-- [ ] **Step 5: Проверить вручную.**
+- [x] **Step 2: Прогнать.** Запуск `ctest --preset conan-debug -R HierarchyModel`, ожидается FAIL.
+- [x] **Step 3: Реализовать** модель, MIME, окно и `main.cpp`.
+- [x] **Step 4: Прогнать тесты.** Ожидается PASS.
+- [x] **Step 5: Проверить вручную.**
   - Запуск: `build/Debug/bin/phosphor /path/to/small.vcd`.
   - Ожидается: в доке дерево `small.vcd → top → clk, data, vout`; Ctrl+O открывает второй файл вторым корнем.
-- [ ] **Step 6: Стоп и коммит.** Показать итог и проверки, дождаться «продолжить», затем `git commit -m "add: главное окно, дерево иерархии, открытие дампов"`
+- [x] **Step 6: Стоп и коммит.** Показать итог и проверки, дождаться «продолжить», затем `git commit -m "add: главное окно, дерево иерархии, открытие дампов"`
 
 ---
 

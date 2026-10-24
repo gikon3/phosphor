@@ -186,6 +186,7 @@ void Session::finishLoad(SourceId id, LoadResult& result) {
 }
 
 void Session::erase(SourceId id) {
+    Q_EMIT sourceAboutToBeRemoved(id);
     sources_.erase(id);
     Q_EMIT sourceRemoved(id);
 }

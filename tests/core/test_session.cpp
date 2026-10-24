@@ -1,10 +1,12 @@
 #include <gtest/gtest.h>
 
 #include <QCoreApplication>
+#include <QObject>
 #include <QSignalSpy>
 #include <QString>
 #include <QTest>
 #include <algorithm>
+#include <cstddef>
 #include <filesystem>
 #include <string_view>
 #include <tuple>
@@ -18,11 +20,6 @@
 namespace {
 
 constexpr int kWaitMs = 5000;
-
-// Полный заголовок и битая метка времени: такой дамп wasafe-vcd отвергает.
-constexpr std::string_view kBrokenVcd =
-        "$timescale 1ns $end\n$scope module top $end\n$var wire 1 ! a $end\n$upscope $end\n"
-        "$enddefinitions $end\n#abc\n1!\n";
 
 // Дамп в пикосекундах, который начинается позже kSmallVcd и заканчивается позже него.
 constexpr std::string_view kPicosecondVcd =
@@ -97,7 +94,7 @@ TEST(Session, LoadsDump) {
 TEST(Session, FailedSourceDoesNotAffectOthers) {
     const Phosphor::Test::TempDir tmp;
     const auto goodPath = Phosphor::Test::writeFile(tmp.path() / "good.vcd", Phosphor::Test::kSmallVcd);
-    const auto badPath = Phosphor::Test::writeFile(tmp.path() / "bad.vcd", kBrokenVcd);
+    const auto badPath = Phosphor::Test::writeFile(tmp.path() / "bad.vcd", Phosphor::Test::kBrokenVcd);
     Phosphor::Session session{Phosphor::StoreCache{tmp.path() / "cache"}};
     const QSignalSpy ready{&session, &Phosphor::Session::sourceReady};
     const QSignalSpy failed{&session, &Phosphor::Session::sourceFailed};
@@ -169,7 +166,7 @@ TEST(Session, RemoveReadySourceIsImmediate) {
 
 TEST(Session, RemoveFailedSourceIsImmediate) {
     const Phosphor::Test::TempDir tmp;
-    const auto dump = Phosphor::Test::writeFile(tmp.path() / "bad.vcd", kBrokenVcd);
+    const auto dump = Phosphor::Test::writeFile(tmp.path() / "bad.vcd", Phosphor::Test::kBrokenVcd);
     Phosphor::Session session{Phosphor::StoreCache{tmp.path() / "cache"}};
     const auto id = openAndWait(session, dump);
     ASSERT_NE(session.info(id), nullptr);
@@ -182,6 +179,80 @@ TEST(Session, RemoveFailedSourceIsImmediate) {
     EXPECT_EQ(idArg(removed, 0), id);
     EXPECT_TRUE(session.sourceIds().empty());
     EXPECT_EQ(session.info(id), nullptr);
+}
+
+namespace {
+
+// Сигнал удаления вместе с тем, что сессия отдаёт по источнику в момент сигнала.
+struct RemovalEvent {
+    bool aboutToBeRemoved = false;
+    Phosphor::SourceId id = 0;
+    bool hasInfo = false;
+    bool hasHierarchy = false;
+
+    friend bool operator==(const RemovalEvent&, const RemovalEvent&) = default;
+};
+
+}  // namespace
+
+TEST(Session, AboutToBeRemovedSeesSourceData) {
+    const Phosphor::Test::TempDir tmp;
+    const auto dump = Phosphor::Test::writeFile(tmp.path() / "a.vcd", Phosphor::Test::kSmallVcd);
+    Phosphor::Session session{Phosphor::StoreCache{tmp.path() / "cache"}};
+    const auto id = openAndWait(session, dump);
+    std::vector<RemovalEvent> events;
+    std::size_t topSignals = 0;
+    QObject::connect(&session, &Phosphor::Session::sourceAboutToBeRemoved, &session, [&](Phosphor::SourceId removed) {
+        const auto* db = session.hierarchyDb(removed);
+        events.push_back({true, removed, session.info(removed) != nullptr, db != nullptr});
+        if (db != nullptr)
+            topSignals = db->root().scope("top").signalCount();
+    });
+    QObject::connect(&session, &Phosphor::Session::sourceRemoved, &session, [&](Phosphor::SourceId removed) {
+        events.push_back({false, removed, session.info(removed) != nullptr, session.hierarchyDb(removed) != nullptr});
+    });
+    // Через очередь обработчик выполняется уже после удаления: источника в нём нет.
+    std::vector<RemovalEvent> queued;
+    QObject::connect(
+            &session, &Phosphor::Session::sourceAboutToBeRemoved, &session,
+            [&](Phosphor::SourceId removed) {
+                queued.push_back(
+                        {true, removed, session.info(removed) != nullptr, session.hierarchyDb(removed) != nullptr});
+            },
+            Qt::QueuedConnection);
+
+    session.removeSource(id);
+    QCoreApplication::processEvents();
+
+    EXPECT_EQ(events, (std::vector<RemovalEvent>{{true, id, true, true}, {false, id, false, false}}));
+    EXPECT_EQ(topSignals, 3U);
+    EXPECT_EQ(queued, (std::vector<RemovalEvent>{{true, id, false, false}}));
+}
+
+TEST(Session, AboutToBeRemovedPrecedesRemovedOnEveryPath) {
+    const Phosphor::Test::TempDir tmp;
+    const auto badPath = Phosphor::Test::writeFile(tmp.path() / "bad.vcd", Phosphor::Test::kBrokenVcd);
+    const auto goodPath = Phosphor::Test::writeFile(tmp.path() / "a.vcd", Phosphor::Test::kSmallVcd);
+    Phosphor::Session session{Phosphor::StoreCache{tmp.path() / "cache"}};
+    const auto bad = openAndWait(session, badPath);
+    std::vector<RemovalEvent> events;
+    QObject::connect(&session, &Phosphor::Session::sourceAboutToBeRemoved, &session, [&](Phosphor::SourceId removed) {
+        events.push_back({true, removed, session.info(removed) != nullptr, false});
+    });
+    QObject::connect(&session, &Phosphor::Session::sourceRemoved, &session, [&](Phosphor::SourceId removed) {
+        events.push_back({false, removed, session.info(removed) != nullptr, false});
+    });
+    QSignalSpy removed{&session, &Phosphor::Session::sourceRemoved};
+
+    // Сломанный источник удаляется сразу, загружающийся — когда его поток вернёт результат.
+    session.removeSource(bad);
+    const auto loading = session.openDump(goodPath);
+    session.removeSource(loading);
+    ASSERT_TRUE(QTest::qWaitFor([&] { return removed.count() == 2; }, kWaitMs));
+
+    EXPECT_EQ(events,
+            (std::vector<RemovalEvent>{{true, bad, true, false}, {false, bad, false, false},
+                    {true, loading, true, false}, {false, loading, false, false}}));
 }
 
 TEST(Session, CancelReadySourceIsNoOp) {
