@@ -288,15 +288,15 @@ bxxxxxxxx "
     - Иначе индексация через `VcdReader` + `makeIndexingBuilder(<store>.part)` + `makeCancellingBuilder`. Потом `takeDatabase()`, уничтожение этой БД, `rename(.part → store)`, `openStore(store)`. Переименование после закрытия нужно потому, что на Windows открытый файл не переименовать.
     - При любом исключении `.part` удаляется, исключение пробрасывается дальше: `Cancelled` либо `WaSafe::Exception`.
 
-- [ ] **Step 1: Написать падающие тесты** (дамп `kSmallVcd` во временном каталоге).
+- [x] **Step 1: Написать падающие тесты** (дамп `kSmallVcd` во временном каталоге).
   - `Loader.IndexesThenReusesStore`: первый `loadDump` создаёт `storePathFor(dump)`. У него `db.find("top.clk")` есть, `db.timeRange().end >= 20`. Второй вызов не меняет `last_write_time` store, то есть файл переиспользован.
   - `Loader.CancelLeavesNoStore`: `std::stop_source s; s.request_stop();` → `EXPECT_THROW(loadDump(..., s.get_token()), Phosphor::Cancelled)`. После этого ни store, ни `.part` нет, а следующий `loadDump` без отмены успешен. Это Review Focus 1.
   - `Loader.BrokenVcdThrowsWaSafe`: файл `"$timescale 1ns $end\n$scope module top $end\n$var wire 1 ! a"` → `EXPECT_THROW(..., WaSafe::Exception)`, и файлов в каталоге кэша нет.
   - `Loader.CorruptStoreReindexes`: положить мусор по пути `storePathFor(dump)`, `loadDump` успешен.
-- [ ] **Step 2: Прогнать.** Запуск `ctest --preset conan-debug -R Loader`, ожидается FAIL.
-- [ ] **Step 3: Реализовать** `cancelling_builder` и `loader`.
-- [ ] **Step 4: Прогнать.** Ожидается PASS.
-- [ ] **Step 5: Стоп и коммит.** Показать итог и проверки, дождаться «продолжить», затем `git commit -m "add: загрузка дампа через кэш store с отменой"`
+- [x] **Step 2: Прогнать.** Запуск `ctest --preset conan-debug -R Loader`, ожидается FAIL.
+- [x] **Step 3: Реализовать** `cancelling_builder` и `loader`.
+- [x] **Step 4: Прогнать.** Ожидается PASS.
+- [x] **Step 5: Стоп и коммит.** Показать итог и проверки, дождаться «продолжить», затем `git commit -m "add: загрузка дампа через кэш store с отменой"`
 
 Прогресс в процентах в этом этапе не делается: у `VcdReader` нет позиции в файле, это доработка этапа 2. UI показывает неопределённый индикатор с отменой.
 
