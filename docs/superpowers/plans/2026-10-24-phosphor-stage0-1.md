@@ -449,14 +449,14 @@ bxxxxxxxx "
     - сигнал `frameReady(Phosphor::FrameResult)` в потоке `Renderer`'а.
   - Один `std::jthread`, очередь команд под мьютексом и `std::condition_variable_any` со `stop_token`. БД источников живут и используются только в рабочем потоке.
 
-- [ ] **Step 1: Написать падающие тесты.**
+- [x] **Step 1: Написать падающие тесты.**
   - `Renderer.ProducesFrameAndCursorValues`: источник из `kSmallVcd`, строки `clk`, `data`, `cursorA = toGlobal(12)`, `cursorB = toGlobal(16)`. В `frameReady` 2 строки, у `data` `valueA == "a5"`, у `clk` `valueA == "0"` и `valueB == "1"`, `frame.spans` непусты.
   - `Renderer.LatestWins`: 20 запросов подряд с `generation` 1..20. Последний полученный кадр имеет `generation == 20`, и ни один полученный не приходит после него с меньшим номером.
   - `Renderer.UnknownSourceEmptyRow`: `RowRequest` с несуществующим `SourceId` даёт строку с пустыми `spans`/`valueA`.
-- [ ] **Step 2: Прогнать.** Запуск `ctest --preset conan-debug -R Renderer`, ожидается FAIL.
-- [ ] **Step 3: Реализовать** `Renderer`.
-- [ ] **Step 4: Прогнать.** Ожидается PASS, плюс прогон `-R Renderer` под `clang-tsan`, как в задаче 6.
-- [ ] **Step 5: Стоп и коммит.** Показать итог и проверки, дождаться «продолжить», затем `git commit -m "add: рабочий поток подготовки кадров"`
+- [x] **Step 2: Прогнать.** Запуск `ctest --preset conan-debug -R Renderer`, ожидается FAIL.
+- [x] **Step 3: Реализовать** `Renderer`.
+- [x] **Step 4: Прогнать.** Ожидается PASS, плюс прогон `-R Renderer` под `clang-tsan`, как в задаче 6.
+- [x] **Step 5: Стоп и коммит.** Показать итог и проверки, дождаться «продолжить», затем `git commit -m "add: рабочий поток подготовки кадров"`
 
 ---
 

@@ -10,15 +10,13 @@
 #include <thread>
 #include <vector>
 
+#include "core/source_id.hpp"
 #include "core/store_cache.hpp"
 #include "core/time_axis.hpp"
 #include "core/time_mapper.hpp"
 #include "wasafe/model/database.hpp"
 
 namespace Phosphor {
-
-// Номер источника в сессии. Уникален в пределах сессии и не переиспользуется.
-using SourceId = std::uint32_t;
 
 enum class SourceState : std::uint8_t { LOADING, READY, FAILED };
 

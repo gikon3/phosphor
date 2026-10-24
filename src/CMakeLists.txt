@@ -20,6 +20,7 @@ target_sources(phosphor_core
     core/digital_frame.cpp
     core/error.cpp
     core/loader.cpp
+    core/renderer.cpp
     core/session.cpp
     core/store_cache.cpp
     core/time_axis.cpp
