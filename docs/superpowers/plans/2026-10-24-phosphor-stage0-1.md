@@ -6,9 +6,9 @@
 иерархии → цифровые строки на холсте с масштабом, прокруткой и курсорами A/B»,
 плюс стенд для замера скорости.
 
-**Architecture:** Три цели CMake. `phosphor-core` — статическая библиотека без
+**Architecture:** Три цели CMake. `phosphor_core` — статическая библиотека без
 QtGui/Widgets (QtCore допустим): время, кэш store, загрузка, сессия, вид,
-прореживание и рабочий поток отрисовки. `phosphor-ui` — статическая библиотека
+прореживание и рабочий поток отрисовки. `phosphor_ui` — статическая библиотека
 виджетов. `phosphor` — только `main.cpp`. GUI-поток трогает `WaSafe::Database`
 только для навигации по иерархии (она в ОЗУ и неизменяема). Значения читает
 исключительно рабочий поток `Renderer` через собственный `duplicate()`.
@@ -38,12 +38,13 @@ Qt 6 (Core, Widgets, Test), GoogleTest, Python 3 (генератор VCD).
   в GUI-потоке.
 - Все цели производительности — таблица 5.1 спеки. Холст 1920 px, 50 строк.
 - Работа идёт в ветке `feat/stage-0-1`, не в `main`.
+- Тесты перечисляются в `tests/CMakeLists.txt` явно: каждая задача добавляет свои файлы. `tests/core/*` идут в `phosphor_core_tests`, `tests/app/*` — в `phosphor_ui_tests`.
 
 Команды сборки и тестов (Linux, существующий пресет):
 
 ```bash
 cd /home/agukov/_work/phosphor
-.venv/bin/conan install . --output-folder=build --build=missing -s compiler.cppstd=23 -s build_type=Debug
+.venv/bin/conan install . --build=missing -s compiler.cppstd=23 -s build_type=Debug
 cmake --preset conan-debug
 cmake --build --preset conan-debug
 ctest --preset conan-debug --output-on-failure
@@ -69,7 +70,7 @@ ctest --preset conan-debug --output-on-failure
 ```plaintext
 CMakeLists.txt                 Qt6, опции PHOSPHOR_BUILD_TESTS / PHOSPHOR_BUILD_BENCH
 conanfile.py                   рецепт приложения
-src/CMakeLists.txt             цели phosphor-core, phosphor-ui, phosphor
+src/CMakeLists.txt             цели phosphor_core, phosphor_ui, phosphor
 src/version.hpp.in             Phosphor::Version
 src/config.hpp.in              Phosphor::kDescription, kHomePageUrl
 src/main.cpp                   QApplication, разбор CLI, MainWindow
@@ -91,8 +92,9 @@ src/app/wave_panel.hpp/.cpp    колонки имён/значений + хол
 src/app/wave_canvas.hpp/.cpp   линейка, волны, курсоры, мышь
 src/app/shortcuts.hpp          все сочетания клавиш в одном месте
 tests/CMakeLists.txt
-tests/test_main.cpp            QApplication (offscreen) + gtest
-tests/support/temp_files.hpp/.cpp  TempDir, writeFile, kSmallVcd
+tests/core_main.cpp            QCoreApplication + gtest (phosphor_core_tests)
+tests/ui_main.cpp              QApplication (offscreen) + gtest (phosphor_ui_tests)
+tests/support/temp_files.hpp/.cpp  TempDir, writeFile, kSmallVcd (библиотека phosphor_test_support)
 tests/core/*.cpp, tests/app/*.cpp
 tools/gen_vcd.py               генератор синтетического VCD
 bench/CMakeLists.txt, bench/phosphor_bench.cpp
@@ -105,18 +107,18 @@ bench/CMakeLists.txt, bench/phosphor_bench.cpp
 **Files:**
 
 - Modify: `CMakeLists.txt`, `conanfile.py`, `src/CMakeLists.txt`, `src/version.hpp.in`, `src/config.hpp.in`, `src/main.cpp`, `tests/CMakeLists.txt`
-- Create: `src/core/error.hpp`, `src/app/main_window.hpp/.cpp` (пустое окно), `tests/test_main.cpp`, `tests/core/test_version.cpp`
+- Create: `src/core/error.hpp`, `src/app/main_window.hpp/.cpp` (пустое окно), `tests/core_main.cpp`, `tests/ui_main.cpp`, `tests/core/test_version.cpp`
 - Delete: `tests/test_empty.cpp`
 
 **Interfaces:**
 
 - Produces:
-  - цели `phosphor-core` (STATIC, alias `phosphor::core`, линкует `wasafe::wasafe_vcd`, `Qt6::Core`), `phosphor-ui` (STATIC, линкует `phosphor-core`, `Qt6::Widgets`), `phosphor` (исполняемый, `main.cpp`);
+  - цели `phosphor_core` (STATIC, alias `phosphor::core`, файл `phosphor-core`, линкует `wasafe::wasafe_vcd`, `Qt6::Core`), `phosphor_ui` (STATIC, alias `phosphor::ui`, файл `phosphor-ui`, линкует `phosphor::core`, `Qt6::Widgets`), `phosphor` (исполняемый, `main.cpp`);
   - include-корень `src/` (`#include "core/time_axis.hpp"`), сгенерированные `version.hpp`/`config.hpp` в `${CMAKE_CURRENT_BINARY_DIR}/include/phosphor/`;
   - `namespace Phosphor::Version { kMajor, kMinor, kPatch, kString }`;
   - `class Error : public std::runtime_error { using runtime_error::runtime_error; }` и `class Cancelled : public Error` в `src/core/error.hpp`;
   - `class Phosphor::MainWindow : public QMainWindow` (пока пустое);
-  - цель тестов `phosphor-tests` с собственным `main` из `tests/test_main.cpp`. Он создаёт `QApplication`; ctest задаёт окружение `QT_QPA_PLATFORM=offscreen`.
+  - две цели тестов: `phosphor_core_tests` (файл `phosphor-core-tests`, `main` из `tests/core_main.cpp` с `QCoreApplication`, линкует только `phosphor::core` — граница слоёв проверяется сборкой) и `phosphor_ui_tests` (файл `phosphor-ui-tests`, `main` из `tests/ui_main.cpp` с `QApplication`; без `QT_QPA_PLATFORM` ставит `offscreen`; ctest тоже задаёт `QT_QPA_PLATFORM=offscreen`).
 
 - [ ] **Step 1: Привести `conanfile.py` к приложению.** Убрать `package_info` (библиотеки у приложения нет), `cmake/*` из `exports_sources`, `rmdir lib/cmake` из `package()`. `layout()` оставить с `cmake_layout`.
 - [ ] **Step 2: Корневой `CMakeLists.txt`.**
@@ -138,7 +140,7 @@ TEST(Version, MatchesProject) {
 }
 ```
 
-`tests/CMakeLists.txt`: `phosphor-tests` из `test_main.cpp` + `core/*.cpp` + `app/*.cpp` + `support/*.cpp`, линкует `phosphor-ui`, `GTest::gtest`, `Qt6::Test`. Дальше `gtest_discover_tests(... PROPERTIES ENVIRONMENT QT_QPA_PLATFORM=offscreen DISCOVERY_TIMEOUT 30)`.
+`tests/CMakeLists.txt`: файлы перечисляются явно, без `file(GLOB)`. `phosphor_core_tests` — `core_main.cpp` + `core/…`, линкует `phosphor::core`, `GTest::gtest`, `Qt6::Test`; `phosphor_ui_tests` — `ui_main.cpp` + `app/…`, линкует `phosphor::core`, `phosphor::ui`, `GTest::gtest`, `Qt6::Test`. Дальше `gtest_discover_tests(... PROPERTIES ENVIRONMENT QT_QPA_PLATFORM=offscreen DISCOVERY_TIMEOUT 30)`.
 
 - [ ] **Step 7: Собрать и прогнать.**
   - Запуск: команды сборки из Global Constraints, затем `QT_QPA_PLATFORM=offscreen build/Debug/bin/phosphor --version`.
@@ -220,7 +222,7 @@ TEST(TimeMapper, PixelRoundTrip) { EXPECT_EQ(Phosphor::pixelToTime({1000, 2000},
 
 **Files:**
 
-- Create: `src/core/store_cache.hpp/.cpp`, `tests/support/temp_files.hpp/.cpp`
+- Create: `src/core/store_cache.hpp/.cpp`, `tests/support/temp_files.hpp/.cpp` — статическая библиотека `phosphor_test_support` (линкует `phosphor::core`), её линкуют оба тестовых бинарника
 - Test: `tests/core/test_store_cache.cpp`
 
 **Interfaces:**
@@ -566,7 +568,7 @@ bxxxxxxxx "
     - Состав: 70 % однобитных (половина — клоки разных периодов, половина — случайные переключения), 20 % шин шириной 8–64, 10 % `real` (затухающие синусы с шумом).
     - Иерархия на 3 уровня по ~30 модулей.
     - Изменения пишутся, пока размер файла меньше `--size-mib`.
-  - `phosphor-bench DUMP [--cache DIR] [--rows 50] [--width 1920]` (цель под `PHOSPHOR_BUILD_BENCH`). Печатает таблицу «операция | мс | порог | OK/FAIL»:
+  - `phosphor-bench DUMP [--cache DIR] [--rows 50] [--width 1920]` (цель `phosphor_bench`, файл `phosphor-bench`, под `PHOSPHOR_BUILD_BENCH`). Печатает таблицу «операция | мс | порог | OK/FAIL»:
     - первая индексация, без порога, только печать;
     - повторное открытие, порог 1000 мс;
     - кадр из 50 строк (первые 40 однобитных/шин + 10 `real` из `leafNodes`) на окнах «весь диапазон», «1/100», «1/10000», порог 100 мс каждый.
@@ -577,7 +579,7 @@ bxxxxxxxx "
   - Ожидается: файл ~2 МиБ, Phosphor открывает его без ошибок.
 - [ ] **Step 2: Написать `phosphor_bench.cpp` и `bench/CMakeLists.txt`.**
 - [ ] **Step 3: Прогнать стенд в Release.**
-  - Запуск: `.venv/bin/conan install . --output-folder=build --build=missing -s compiler.cppstd=23 -s build_type=Release`, затем `cmake --preset conan-release -DPHOSPHOR_BUILD_BENCH=ON`, `cmake --build --preset conan-release`, `python3 tools/gen_vcd.py --out /tmp/big.vcd`, `build/Release/bin/phosphor-bench /tmp/big.vcd --cache /tmp/phosphor-bench-cache`.
+  - Запуск: `.venv/bin/conan install . --build=missing -s compiler.cppstd=23 -s build_type=Release`, затем `cmake --preset conan-release -DPHOSPHOR_BUILD_BENCH=ON`, `cmake --build --preset conan-release`, `python3 tools/gen_vcd.py --out /tmp/big.vcd`, `build/Release/bin/phosphor-bench /tmp/big.vcd --cache /tmp/phosphor-bench-cache`.
   - Ожидается: таблица напечатана, повторное открытие OK. Результаты кадров записать в README как исходную точку для этапа 2.
 - [ ] **Step 4: Стоп и коммит.** Показать итог и проверки, дождаться «продолжить», затем `git commit -m "add: генератор большого VCD и стенд замеров"`
 
