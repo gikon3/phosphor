@@ -25,6 +25,7 @@
 
 #include "app/hierarchy_model.hpp"
 #include "app/shortcuts.hpp"
+#include "app/wave_panel.hpp"
 #include "core/renderer.hpp"
 #include "core/session.hpp"
 #include "core/view.hpp"
@@ -47,6 +48,7 @@ constexpr int kProgressWidth = 120;
 MainWindow::MainWindow(Session& session, View& view, Renderer& renderer, QWidget* parent) :
         QMainWindow{parent}, session_{&session}, view_{&view}, renderer_{&renderer} {
     setWindowTitle(QStringLiteral("Phosphor"));
+    setCentralWidget(new WavePanel{session, view, renderer, this});
     createHierarchyDock();
     createMenus();
     restoreSettings();

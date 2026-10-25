@@ -16,6 +16,9 @@ inline const QKeySequence kExit{Qt::CTRL | Qt::Key_Q};
 inline const QKeySequence kAddSignals{Qt::Key_Return};
 inline const QKeySequence kAddSignalsKeypad{Qt::Key_Enter};
 
+// Удалить выделенные строки вида.
+inline const QKeySequence kRemoveRows{Qt::Key_Delete};
+
 inline const QKeySequence kZoomIn{Qt::CTRL | Qt::Key_Equal};
 inline const QKeySequence kZoomOut{Qt::CTRL | Qt::Key_Minus};
 inline const QKeySequence kZoomFit{Qt::CTRL | Qt::Key_0};

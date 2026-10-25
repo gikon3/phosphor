@@ -539,17 +539,17 @@ bxxxxxxxx "
     - на линейке подписи `formatTime`, метки A и B и `Δ <formatTime(B−A)>` между ними;
     - клавиши из `shortcuts.hpp`: приблизить/отдалить вокруг центра, вписать всё (`totalRange`).
 
-- [ ] **Step 1: Написать падающие тесты** (offscreen; Session + Renderer с `kSmallVcd`; `QSignalSpy` на `frameReady`).
+- [x] **Step 1: Написать падающие тесты** (offscreen; Session + Renderer с `kSmallVcd`; `QSignalSpy` на `frameReady`).
   - `WavePanel.AddsRowsAndShowsValues`: вставка `top.clk`, `top.data` в `View`, `setCursorA(toGlobal(12))`. После кадра текст колонки значений у `data` содержит `"a5"`. Видимые тексты колонок доступны через `QString WavePanel::valueText(std::size_t row) const`, она объявляется в этой задаче.
   - `WavePanel.MissingSignalMarked`: строка `{id, "top.nope"}` даёт `QString WavePanel::nameText(std::size_t row) const`, содержащий `"not in dump"`.
   - `WavePanel.CtrlWheelZooms`: синтетический `QWheelEvent` с `Ctrl` над серединой холста уменьшает `view.window()`. Середина времени окна остаётся в пределах 1 % ширины.
   - `WavePanel.HiddenCanvasNoCrash`: `resize(0, 0)` + `requestFrame()` + обработка событий — без падения. Это Review Focus 4.
-- [ ] **Step 2: Прогнать.** Запуск `ctest --preset conan-debug -R WavePanel`, ожидается FAIL.
-- [ ] **Step 3: Реализовать** `WavePanel` и `WaveCanvas`.
-- [ ] **Step 4: Прогнать тесты.** Ожидается PASS.
-- [ ] **Step 5: Проверить вручную** на `kSmallVcd` и на дампе из генератора задачи 11 размером ~50 МиБ.
+- [x] **Step 2: Прогнать.** Запуск `ctest --preset conan-debug -R WavePanel`, ожидается FAIL.
+- [x] **Step 3: Реализовать** `WavePanel` и `WaveCanvas`.
+- [x] **Step 4: Прогнать тесты.** Ожидается PASS.
+- [x] **Step 5: Проверить вручную** на `kSmallVcd` и на дампе из генератора задачи 11 размером ~50 МиБ.
   - Ожидается: волны видны, `Ctrl+колесо` плавно приближает, курсоры ставятся и тянутся, Δt верна, GUI не замирает при открытии.
-- [ ] **Step 6: Стоп и коммит.** Показать итог и проверки, дождаться «продолжить», затем `git commit -m "add: панель волн — колонки, холст, зум, курсоры"`
+- [x] **Step 6: Стоп и коммит.** Показать итог и проверки, дождаться «продолжить», затем `git commit -m "add: панель волн — колонки, холст, зум, курсоры"`
 
 ---
 

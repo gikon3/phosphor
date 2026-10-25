@@ -56,7 +56,8 @@ gtest_discover_tests(phosphor_core_tests
 add_executable(phosphor_ui_tests
     ui_main.cpp
     app/test_hierarchy_model.cpp
-    app/test_main_window.cpp)
+    app/test_main_window.cpp
+    app/test_wave_panel.cpp)
 
 set_target_properties(phosphor_ui_tests PROPERTIES
     OUTPUT_NAME phosphor-ui-tests)

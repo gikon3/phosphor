@@ -52,7 +52,10 @@ target_sources(phosphor_ui
     PRIVATE
     app/hierarchy_model.cpp
     app/main_window.cpp
-    app/signal_mime.cpp)
+    app/row_column.cpp
+    app/signal_mime.cpp
+    app/wave_canvas.cpp
+    app/wave_panel.cpp)
 
 target_link_libraries(phosphor_ui
     PUBLIC
