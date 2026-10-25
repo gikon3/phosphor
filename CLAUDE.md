@@ -4,7 +4,11 @@
 Ориентир по удобству — SimVision (цифра) + Virtuoso/ViVA (аналог).
 
 - Спека v1: [docs/superpowers/specs/2026-10-24-phosphor-design.md](docs/superpowers/specs/2026-10-24-phosphor-design.md)
-- Текущий план: [docs/superpowers/plans/2026-10-24-phosphor-stage0-1.md](docs/superpowers/plans/2026-10-24-phosphor-stage0-1.md)
+- Этапы 0–1 (скелет и вертикальный срез) завершены:
+  [docs/superpowers/plans/2026-10-24-phosphor-stage0-1.md](docs/superpowers/plans/2026-10-24-phosphor-stage0-1.md).
+  Перечень следующих этапов — в его конце («Что сознательно не входит»).
+- Следующий этап планируется от спеки и [docs/backlog.md](docs/backlog.md): раздел
+  «Высокий приоритет» — то, с чего начинать. Исходные замеры — README, раздел «Стенд».
 
 ## Сборка и тесты
 
@@ -29,7 +33,24 @@ ctest --preset conan-debug --output-on-failure
   `QCoreApplication` — так сборка проверяет, что ядро не зависит от виджетов) и
   `phosphor-ui-tests` (`QApplication`, `QT_QPA_PLATFORM=offscreen` по умолчанию).
   Файлы тестов перечисляются в `tests/CMakeLists.txt` явно, без `file(GLOB)`.
-- Для гонок есть Conan-профиль `clang-tsan`, для памяти — `clang-asan-ubsan`.
+- Санитайзеры и Release — пресеты `conan-debug-tsan`, `conan-debug-asan-ubsan`,
+  `conan-release` (профили Conan `clang-tsan`, `clang-asan-ubsan`, сборка `Release`). При
+  editable-зависимостях wasafe и wasafe-vcd должны быть собраны тем же профилем в своих
+  репозиториях, иначе пакеты указывают на несуществующий каталог сборки:
+
+  ```bash
+  .venv/bin/conan install . -pr clang-tsan -s compiler.cppstd=23 --build=missing
+  cmake --preset conan-debug-tsan
+  cmake --build --preset conan-debug-tsan
+  ctest --preset conan-debug-tsan
+  ```
+
+- Формат и статический анализ — скрипты `.claude/scripts/clang-format.sh [--check] [файлы]`
+  и `.claude/scripts/clang-tidy.sh -p build/Debug [файлы]` (без файлов — всё изменённое
+  относительно HEAD; `.hpp` проверяется через включающие его `.cpp`). Хук Claude Code сам
+  форматирует правленые `.cpp/.h/.hpp`.
+- Стенд производительности — README, раздел «Стенд» (`tools/gen_vcd.py`, `phosphor-bench`,
+  опция `PHOSPHOR_BUILD_BENCH`).
 
 ## Устройство
 
@@ -43,6 +64,25 @@ ctest --preset conan-debug --output-on-failure
   `TimeAxis`.
 - Сигналы в виде и сессии ссылаются на пару «источник + полный путь», не на
   `NodeId`: id меняются при переиндексации.
+
+### Как устроено сейчас (неочевидное — не «упрощать» обратно)
+
+- **Session** грузит каждый дамп в своём `std::jthread` (`loadDump` → `.wsfstore` в кэше) и
+  отдаёт результат в свой поток через очередь Qt. У источника две БД: для иерархии в GUI-потоке
+  и копия `duplicate()` для рендерера. `sourceAboutToBeRemoved` приходит, пока данные живы, и
+  обрабатывается только прямым соединением: на нём модель дерева удаляет строки.
+- **Renderer** — один рабочий поток со всеми БД значений. Побеждает последний запрос, кадры
+  приходят по возрастанию поколения. Готовый кадр лежит в ящике на одно место под мьютексом, а
+  в GUI уходит пустое собственное событие Qt: лямбда или указатель на метод через очередь дают
+  ложные срабатывания TSan с несобранной под TSan системной Qt.
+- **Прореживание** (`buildDigitalFrame`) переводит изменения в спаны по пикселям тем же
+  отображением время→пиксель, что и курсоры; плотный пиксель (≥ 2 изменения) пропускается
+  перескоком к следующему, поэтому цена кадра — по пикселям, а не по изменениям.
+- **WavePanel** — единственное место, где меняется окно времени из UI (`applyWindow`: не
+  левее начала данных); запросы кадров схлопываются до одного за итерацию цикла событий;
+  кадр сопоставляется строкам по сигналу и формату, а не по индексу.
+- **Кэш store**: имя `<stem>-<хеш пути>-<хеш размера и mtime>.wsfstore`; после публикации
+  старые версии того же дампа удаляются. Каталог — `GenericCacheLocation/<kName>/stores`.
 
 ## Инварианты
 
