@@ -18,7 +18,6 @@
 #include <QStatusBar>
 #include <QStringList>
 #include <QTreeView>
-#include <algorithm>
 #include <filesystem>
 #include <utility>
 #include <vector>
@@ -34,8 +33,6 @@ namespace Phosphor {
 
 namespace {
 
-constexpr auto kSettingsOrganization = "phosphor";
-constexpr auto kSettingsApplication = "phosphor";
 constexpr auto kGeometryKey = "mainWindow/geometry";
 constexpr auto kStateKey = "mainWindow/state";
 
@@ -46,9 +43,10 @@ constexpr int kProgressWidth = 120;
 }  // namespace
 
 MainWindow::MainWindow(Session& session, View& view, Renderer& renderer, QWidget* parent) :
-        QMainWindow{parent}, session_{&session}, view_{&view}, renderer_{&renderer} {
+        QMainWindow{parent}, session_{&session}, view_{&view}, renderer_{&renderer},
+        panel_{new WavePanel{session, view, renderer, this}} {
     setWindowTitle(QStringLiteral("Phosphor"));
-    setCentralWidget(new WavePanel{session, view, renderer, this});
+    setCentralWidget(panel_);
     createHierarchyDock();
     createMenus();
     restoreSettings();
@@ -65,6 +63,8 @@ MainWindow::MainWindow(Session& session, View& view, Renderer& renderer, QWidget
     connect(&session, &Session::sourceRemoved, this, [this](SourceId id) {
         hideLoading(id);
         renderer_->removeSource(id);
+        if (!session_->totalRange())
+            rangeShown_ = false;
     });
     adoptExistingSources();
 }
@@ -89,6 +89,8 @@ void MainWindow::createMenus() {
 
     auto* viewMenu = menuBar()->addMenu(tr("&View"));
     viewMenu->addAction(hierarchyDock_->toggleViewAction());
+    viewMenu->addSeparator();
+    viewMenu->addActions(panel_->timeActions());
 }
 
 void MainWindow::createHierarchyDock() {
@@ -119,7 +121,8 @@ void MainWindow::createHierarchyDock() {
 }
 
 void MainWindow::openDumps() {
-    const auto files = QFileDialog::getOpenFileNames(this, tr("Open Dumps"), QString{}, tr("VCD files (*.vcd)"));
+    const auto files =
+            QFileDialog::getOpenFileNames(this, tr("Open Dumps"), QString{}, tr("VCD files (*.vcd);;All files (*)"));
     for (const auto& file : files)
         session_->openDump(std::filesystem::path{file.toStdU16String()});
 }
@@ -189,13 +192,8 @@ void MainWindow::hideLoading(SourceId id) {
 
 void MainWindow::handleReady(SourceId id) {
     hideLoading(id);
-    const auto ids = session_->sourceIds();
-    const bool firstReady = std::ranges::none_of(ids, [&](SourceId other) {
-        const auto* info = session_->info(other);
-        return other != id && info != nullptr && info->state == SourceState::READY;
-    });
     attachToRenderer(id);
-    if (firstReady)
+    if (!rangeShown_)
         fitWindowToSources();
 }
 
@@ -207,8 +205,11 @@ void MainWindow::attachToRenderer(SourceId id) {
 }
 
 void MainWindow::fitWindowToSources() {
-    if (const auto range = session_->totalRange())
-        view_->setWindow(*range);
+    const auto range = session_->totalRange();
+    if (!range)
+        return;
+    view_->setWindow(*range);
+    rangeShown_ = true;
 }
 
 void MainWindow::reportFailure(SourceId id, const QString& error) {
@@ -225,14 +226,14 @@ void MainWindow::reportFailure(SourceId id, const QString& error) {
 }
 
 void MainWindow::restoreSettings() {
-    const QSettings settings{kSettingsOrganization, kSettingsApplication};
+    const QSettings settings;
     if (!restoreGeometry(settings.value(kGeometryKey).toByteArray()))
         resize(kDefaultWidth, kDefaultHeight);
     restoreState(settings.value(kStateKey).toByteArray());
 }
 
 void MainWindow::saveSettings() const {
-    QSettings settings{kSettingsOrganization, kSettingsApplication};
+    QSettings settings;
     settings.setValue(kGeometryKey, saveGeometry());
     settings.setValue(kStateKey, saveState());
 }

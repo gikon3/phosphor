@@ -3,6 +3,7 @@
 #include <QEvent>
 #include <QMetaType>
 #include <QObject>
+#include <QString>
 #include <condition_variable>
 #include <cstdint>
 #include <deque>
@@ -121,7 +122,7 @@ private:
     static void execute(Sources& sources, Command& command);
     // Сбой чтения строки ловится: он не должен ни ронять поток, ни терять кадр.
     static RowResult renderRow(Sources& sources, const FrameRequest& r, const RowRequest& row);
-    static void reportFailure(SourceId id, Source& source, const char* what);
+    static void reportFailure(SourceId id, Source& source, const QString& what);
 
     void run(const std::stop_token& stop);
     // nullopt, если кадр брошен ради более нового запроса или остановки.

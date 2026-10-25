@@ -58,7 +58,7 @@ void publish(const std::filesystem::path& part, const std::filesystem::path& sto
     std::filesystem::rename(part, store, ec);
     if (!ec)
         return;
-    const auto renameMessage = ec.message();
+    const auto renameMessage = systemMessage(ec);
     removeQuietly(part);
     std::error_code existsEc;
     if (std::filesystem::exists(store, existsEc))
@@ -74,12 +74,14 @@ WaSafe::Database loadDump(const std::filesystem::path& dump, const StoreCache& c
 
     if (std::filesystem::exists(store, ec)) {
         try {
-            return WaSafe::openStore(store);
+            auto db = WaSafe::openStore(store);
+            cache.removeOutdated(store);
+            return db;
         }
         catch (const WaSafe::Exception&) {
             std::filesystem::remove(store, ec);
             if (ec)
-                throw Error{std::format("cannot remove broken store '{}': {}", utf8(store), ec.message())};
+                throw Error{std::format("cannot remove broken store '{}': {}", utf8(store), systemMessage(ec))};
         }
     }
 
@@ -92,7 +94,9 @@ WaSafe::Database loadDump(const std::filesystem::path& dump, const StoreCache& c
         throw;
     }
     publish(part, store);
-    return WaSafe::openStore(store);
+    auto db = WaSafe::openStore(store);
+    cache.removeOutdated(store);
+    return db;
 }
 
 }  // namespace Phosphor

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QList>
 #include <QPoint>
 #include <QString>
 #include <QWidget>
@@ -13,6 +14,7 @@
 #include "core/view.hpp"
 #include "wasafe/core/ids.hpp"
 
+class QAction;
 class QDragEnterEvent;
 class QDragLeaveEvent;
 class QDragMoveEvent;
@@ -49,6 +51,11 @@ public:
     // данные которых есть в показанном кадре.
     [[nodiscard]] QString nameText(std::size_t row) const;
     [[nodiscard]] QString valueText(std::size_t row) const;
+
+    // Действия масштаба и курсоров в порядке для меню. Сочетания масштаба действуют, когда фокус в
+    // панели, курсоров — во всём окне; список нужен, чтобы действия можно было увидеть и вызвать
+    // при любом фокусе.
+    [[nodiscard]] QList<QAction*> timeActions() const;
 
 protected:
     // Принимаются только сигналы, перетаскиваемые в этом же процессе: номер источника
@@ -94,6 +101,8 @@ private:
 
     void zoomBy(double factor);
     void zoomFit();
+    void moveCursorAToWindowStart();
+    void moveCursorBToWindowStart();
     // Единственный путь, которым панель меняет окно: начало окна не уходит левее начала данных,
     // а окно, которое ушло бы, сдвигается вправо с прежней шириной. Без готовых источников окно
     // применяется как есть.
@@ -125,6 +134,7 @@ private:
     WaveCanvas* canvas_ = nullptr;
     QScrollBar* vScroll_ = nullptr;
     QScrollBar* hScroll_ = nullptr;
+    QList<QAction*> timeActions_;
 
     std::uint64_t generation_ = 0;
     bool frameScheduled_ = false;

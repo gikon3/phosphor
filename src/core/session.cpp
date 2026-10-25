@@ -148,7 +148,7 @@ Session::LoadResult Session::loadSource(const std::filesystem::path& path, const
         result.cancelled = true;
     }
     catch (const std::exception& e) {
-        result.error = QString::fromUtf8(e.what());
+        result.error = errorText(e);
         if (result.error.isEmpty())
             result.error = QString::fromLatin1(kUnknownError);
     }

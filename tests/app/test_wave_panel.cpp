@@ -495,6 +495,68 @@ TEST(WavePanel, ZoomActions) {
     EXPECT_EQ(ws.view.window(), total);
 }
 
+// Кроме Ctrl+= масштаб меняют Ctrl++ (с Shift и без: платформы сообщают его по-разному) и
+// «+» / «−» цифрового блока.
+TEST(WavePanel, ZoomKeyAlternatives) {
+    Workspace ws;
+    const Phosphor::WavePanel panel{ws.session, ws.view, ws.renderer};
+
+    auto* zoomIn = actionFor(panel, Phosphor::Shortcuts::kZoomIn);
+    auto* zoomOut = actionFor(panel, Phosphor::Shortcuts::kZoomOut);
+    ASSERT_NE(zoomIn, nullptr);
+    ASSERT_NE(zoomOut, nullptr);
+    EXPECT_EQ(actionFor(panel, QKeySequence{Qt::CTRL | Qt::Key_Plus}), zoomIn);
+    EXPECT_EQ(actionFor(panel, QKeySequence{Qt::CTRL | Qt::SHIFT | Qt::Key_Plus}), zoomIn);
+    EXPECT_EQ(actionFor(panel, QKeySequence{Qt::KeypadModifier | Qt::Key_Plus}), zoomIn);
+    EXPECT_EQ(actionFor(panel, QKeySequence{Qt::KeypadModifier | Qt::Key_Minus}), zoomOut);
+}
+
+// Масштаб с клавиатуры — только когда фокус в панели: клавиши цифрового блока без Ctrl иначе
+// отнимали бы символы у полей ввода окна.
+TEST(WavePanel, ZoomShortcutsActInPanelOnly) {
+    Workspace ws;
+    const Phosphor::WavePanel panel{ws.session, ws.view, ws.renderer};
+
+    for (const auto& shortcut :
+            {Phosphor::Shortcuts::kZoomIn, Phosphor::Shortcuts::kZoomOut, Phosphor::Shortcuts::kZoomFit}) {
+        auto* action = actionFor(panel, shortcut);
+        ASSERT_NE(action, nullptr);
+        EXPECT_EQ(action->shortcutContext(), Qt::WidgetWithChildrenShortcut) << action->text().toStdString();
+    }
+}
+
+TEST(WavePanel, KeypadPlusInCanvasZooms) {
+    ShownPanel p;
+    p.panel.activateWindow();
+    ASSERT_TRUE(QTest::qWaitForWindowActive(&p.panel));
+    p.canvas->setFocus();
+    ASSERT_TRUE(p.canvas->hasFocus());
+    const auto before = p.ws.view.window();
+
+    QTest::keyClick(p.canvas, Qt::Key_Plus, Qt::KeypadModifier);
+
+    EXPECT_LT(span(p.ws.view.window()), span(before));
+}
+
+TEST(WavePanel, CursorsToWindowStart) {
+    Workspace ws;
+    const Phosphor::WavePanel panel{ws.session, ws.view, ws.renderer};
+    const Phosphor::TimeWindow part{ws.at(4), ws.at(14)};
+    ws.view.setWindow(part);
+    ws.view.setCursorA(ws.at(10));
+
+    auto* cursorB = actionFor(panel, Phosphor::Shortcuts::kCursorBToWindowStart);
+    ASSERT_NE(cursorB, nullptr);
+    cursorB->trigger();
+    EXPECT_EQ(ws.view.cursorA(), ws.at(10));
+    EXPECT_EQ(ws.view.cursorB(), part.begin);
+
+    auto* cursorA = actionFor(panel, Phosphor::Shortcuts::kCursorAToWindowStart);
+    ASSERT_NE(cursorA, nullptr);
+    cursorA->trigger();
+    EXPECT_EQ(ws.view.cursorA(), part.begin);
+}
+
 TEST(WavePanel, HorizontalScrollBarMovesWindow) {
     Workspace ws;
     Phosphor::WavePanel panel{ws.session, ws.view, ws.renderer};

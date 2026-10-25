@@ -23,7 +23,7 @@ TempDir::TempDir() {
             return;
         }
         if (ec)
-            throw Error{std::format("cannot create temp directory '{}': {}", candidate.string(), ec.message())};
+            throw Error{std::format("cannot create temp directory '{}': {}", candidate.string(), systemMessage(ec))};
     }
 }
 

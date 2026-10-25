@@ -69,6 +69,9 @@ qt_add_executable(phosphor main.cpp)
 
 target_link_libraries(phosphor PRIVATE phosphor::ui)
 
+# Оконное приложение: на Windows без консоли рядом с окном.
+set_target_properties(phosphor PROPERTIES WIN32_EXECUTABLE TRUE)
+
 if(PHOSPHOR_INSTALL)
     install(TARGETS phosphor RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 endif()

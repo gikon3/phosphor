@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "core/session.hpp"
+#include "core/source_id.hpp"
 #include "core/time_axis.hpp"
 #include "core/time_mapper.hpp"
 #include "core/value_format.hpp"

@@ -61,3 +61,28 @@ TEST(FormatTime, KeepsSignAndCoversAllUnits) {
     EXPECT_EQ(Phosphor::formatTime(-999'999'999), "-1 us");
     EXPECT_EQ(Phosphor::formatTime(std::numeric_limits<std::int64_t>::min()), "-9223.372 s");
 }
+
+// Соседние деления линейки различаются, даже если шаг намного мельче выбранной единицы.
+TEST(FormatTimeWithResolution, NeighbouringTicksDiffer) {
+    EXPECT_EQ(Phosphor::formatTime(39'076'500'000, 500'000), "39.0765 us");
+    EXPECT_EQ(Phosphor::formatTime(39'077'000'000, 500'000), "39.077 us");
+    EXPECT_EQ(Phosphor::formatTime(39'076'500'500, 500), "39.0765005 us");
+    EXPECT_EQ(Phosphor::formatTime(7'000'000'000'000'003, 1), "7.000000000000003 s");
+}
+
+TEST(FormatTimeWithResolution, CoarseStepAddsNoDigits) {
+    EXPECT_EQ(Phosphor::formatTime(40'000'000'000, 10'000'000'000), "40 us");
+    EXPECT_EQ(Phosphor::formatTime(39'000'000'000, 1'000'000'000), "39 us");
+    EXPECT_EQ(Phosphor::formatTime(1'500'000, 500'000), "1.5 ns");
+    EXPECT_EQ(Phosphor::formatTime(1'200'000, 200'000), "1.2 ns");
+    EXPECT_EQ(Phosphor::formatTime(0, 500'000), "0 s");
+}
+
+TEST(FormatTimeWithResolution, RoundsToStepAndCarriesUnit) {
+    EXPECT_EQ(Phosphor::formatTime(39'077'400'000, 1'000'000'000), "39 us");
+    EXPECT_EQ(Phosphor::formatTime(999'999'999, 1000), "1 us");
+    EXPECT_EQ(Phosphor::formatTime(-39'076'500'000, 500'000), "-39.0765 us");
+    // Неположительный шаг означает предельную точность — фемтосекунду.
+    EXPECT_EQ(Phosphor::formatTime(1'000'001, 0), "1.000001 ns");
+    EXPECT_EQ(Phosphor::formatTime(std::numeric_limits<std::int64_t>::min(), 1), "-9223.372036854775808 s");
+}

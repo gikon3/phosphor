@@ -1,7 +1,5 @@
 #include <QApplication>
 #include <QCommandLineParser>
-#include <QDir>
-#include <QStandardPaths>
 #include <QString>
 #include <QtLogging>
 #include <cstdlib>
@@ -9,10 +7,12 @@
 #include <filesystem>
 
 #include "app/main_window.hpp"
+#include "core/error.hpp"
 #include "core/renderer.hpp"
 #include "core/session.hpp"
 #include "core/store_cache.hpp"
 #include "core/view.hpp"
+#include "phosphor/config.hpp"
 #include "phosphor/version.hpp"
 
 namespace {
@@ -21,19 +21,12 @@ std::filesystem::path toPath(const QString& s) {
     return std::filesystem::path{s.toStdU16String()};
 }
 
-// Без каталога кэша индексы дампов легли бы в текущий каталог процесса.
-std::filesystem::path cacheDirectory() {
-    const auto location = QStandardPaths::writableLocation(QStandardPaths::CacheLocation);
-    if (!location.isEmpty())
-        return toPath(location);
-    const auto fallback = QDir::tempPath() + QStringLiteral("/phosphor");
-    qWarning("No writable cache location, using %s", qPrintable(fallback));
-    return toPath(fallback);
-}
-
 int run(int& argc, char** argv) {
+    // Имена задают место настроек приложения.
+    const auto name = QString::fromUtf8(Phosphor::kName.data(), Phosphor::kName.size());
+    QApplication::setOrganizationName(name);
+    QApplication::setApplicationName(name);
     const QApplication app{argc, argv};
-    QApplication::setApplicationName(QStringLiteral("phosphor"));
     QApplication::setApplicationVersion(
             QString::fromUtf8(Phosphor::Version::kString.data(), Phosphor::Version::kString.size()));
 
@@ -45,7 +38,7 @@ int run(int& argc, char** argv) {
     parser.process(app);
 
     // Окно объявлено последним: оно ссылается на сессию, вид и рендерер и разрушается первым.
-    Phosphor::Session session{Phosphor::StoreCache{cacheDirectory() / "stores"}};
+    Phosphor::Session session{Phosphor::StoreCache{Phosphor::defaultCacheDirectory() / "stores"}};
     Phosphor::View view;
     Phosphor::Renderer renderer;
     Phosphor::MainWindow window{session, view, renderer};
@@ -64,10 +57,11 @@ int main(int argc, char* argv[]) {
         return run(argc, argv);
     }
     catch (const std::exception& e) {
-        qCritical("phosphor: %s", e.what());
+        qCritical("%.*s: %s", static_cast<int>(Phosphor::kName.size()), Phosphor::kName.data(),
+                qUtf8Printable(Phosphor::errorText(e)));
     }
     catch (...) {
-        qCritical("phosphor: unknown error");
+        qCritical("%.*s: unknown error", static_cast<int>(Phosphor::kName.size()), Phosphor::kName.data());
     }
     return EXIT_FAILURE;
 }

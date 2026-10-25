@@ -4,6 +4,8 @@
 
 namespace Phosphor {
 
+// Имя проекта: имя приложения и организации в настройках и имя каталога кэша.
+inline constexpr std::string_view kName{"@PROJECT_NAME@"};
 inline constexpr std::string_view kDescription{"@PROJECT_DESCRIPTION@"};
 inline constexpr std::string_view kHomePageUrl{"@PROJECT_HOMEPAGE_URL@"};
 

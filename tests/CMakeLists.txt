@@ -27,6 +27,7 @@ set_target_properties(phosphor_test_support PROPERTIES
 add_executable(phosphor_core_tests
     core_main.cpp
     core/test_digital_frame.cpp
+    core/test_error.cpp
     core/test_loader.cpp
     core/test_renderer.cpp
     core/test_session.cpp

@@ -16,6 +16,7 @@ class HierarchyModel;
 class Renderer;
 class Session;
 class View;
+class WavePanel;
 
 // Главное окно: меню, дерево иерархии в доке и статус загрузок. Сессия, вид и рендерер окну не
 // принадлежат и должны его пережить. Источники, уже открытые в сессии, окно подхватывает как новые;
@@ -28,10 +29,12 @@ public:
 
 protected:
     // Геометрия и раскладка доков сохраняются при закрытии, а восстанавливаются в конструкторе.
+    // Место — настройки приложения по умолчанию: их задают имена организации и приложения
+    // и формат по умолчанию у QSettings.
     void closeEvent(QCloseEvent* event) override;
 
 private:
-    // Меню ссылаются на док, поэтому создаются после него.
+    // Меню ссылаются на док и панель волн, поэтому создаются после них.
     void createMenus();
     void createHierarchyDock();
     void openDumps();
@@ -44,8 +47,9 @@ private:
     void revealHierarchy();
     void showLoading(SourceId id);
     void hideLoading(SourceId id);
-    // Вид сразу показывает все дампы, но только если до этого показывать было нечего: окно,
-    // выбранное пользователем, новый источник не сбивает.
+    // Вид сразу показывает все дампы, но только если до этого показывать было нечего (ни у одного
+    // готового дампа не было диапазона времени): окно, выбранное пользователем, новый источник не
+    // сбивает.
     void handleReady(SourceId id);
     void attachToRenderer(SourceId id);
     void fitWindowToSources();
@@ -58,11 +62,15 @@ private:
     Session* session_;
     View* view_;
     Renderer* renderer_;
+    WavePanel* panel_ = nullptr;
     HierarchyModel* model_ = nullptr;
     QTreeView* tree_ = nullptr;
     QDockWidget* hierarchyDock_ = nullptr;
     // Виджет статус-бара каждой идущей загрузки.
     std::map<SourceId, QWidget*> loading_;
+    // Окно уже подогнано под непустой диапазон готовых источников; сбрасывается, когда с удалением
+    // источников диапазона не остаётся.
+    bool rangeShown_ = false;
 };
 
 }  // namespace Phosphor

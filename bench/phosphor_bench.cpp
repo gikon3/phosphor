@@ -9,11 +9,13 @@
 #include <cstdio>
 #include <exception>
 #include <filesystem>
+#include <memory>
 #include <optional>
 #include <print>
 #include <span>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "core/digital_frame.hpp"
@@ -59,23 +61,33 @@ void printRow(const std::string& name, double ms, std::optional<double> limit) {
         std::println("{:<44} {:>10.1f} {:>10}  {}", name, ms, "-", "-");
 }
 
-bool parseInt(const std::string& text, int& out) {
-    const auto* const end = text.data() + text.size();
-    const auto [ptr, ec] = std::from_chars(text.data(), end, out);
-    return ec == std::errc{} && ptr == end;
+// Строка целиком как десятичное целое; nullopt, если это не так.
+std::optional<int> parseInt(std::string_view text) {
+    int value = 0;
+    const auto* const first = std::to_address(text.begin());
+    const auto* const last = std::to_address(text.end());
+    const auto [ptr, ec] = std::from_chars(first, last, value);
+    if (ec != std::errc{} || ptr != last)
+        return std::nullopt;
+    return value;
 }
 
-// Применяет опцию со значением; false, если имя неизвестно или значение некорректно.
-bool applyOption(Options& o, std::string_view name, std::string_view value) {
+// Параметры с применённой опцией; nullopt, если имя неизвестно или значение некорректно.
+std::optional<Options> applyOption(Options o, std::string_view name, std::string_view value) {
     if (name == "--cache") {
         o.cacheDir = std::string{value};
-        return true;
+        return o;
     }
+    const auto number = parseInt(value);
+    if (!number)
+        return std::nullopt;
     if (name == "--rows")
-        return parseInt(std::string{value}, o.rows);
-    if (name == "--width")
-        return parseInt(std::string{value}, o.width);
-    return false;
+        o.rows = *number;
+    else if (name == "--width")
+        o.width = *number;
+    else
+        return std::nullopt;
+    return o;
 }
 
 std::optional<Options> parseOptions(std::span<const std::string_view> args) {
@@ -83,8 +95,12 @@ std::optional<Options> parseOptions(std::span<const std::string_view> args) {
     bool haveDump = false;
     for (std::size_t i = 0; i < args.size(); ++i) {
         if (args[i].starts_with("--")) {
-            if (i + 1 >= args.size() || !applyOption(o, args[i], args[i + 1]))
+            if (i + 1 >= args.size())
                 return std::nullopt;
+            auto applied = applyOption(std::move(o), args[i], args[i + 1]);
+            if (!applied)
+                return std::nullopt;
+            o = std::move(*applied);
             ++i;
         }
         else if (!haveDump) {

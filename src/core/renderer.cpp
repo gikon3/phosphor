@@ -3,10 +3,13 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QEvent>
+#include <QString>
 #include <deque>
 #include <exception>
 #include <memory>
 #include <utility>
+
+#include "core/error.hpp"
 
 namespace Phosphor {
 
@@ -93,20 +96,20 @@ RowResult Renderer::renderRow(Sources& sources, const FrameRequest& r, const Row
                 valueAt(r.cursorA), valueAt(r.cursorB)};
     }
     catch (const std::exception& e) {
-        reportFailure(row.source, source, e.what());
+        reportFailure(row.source, source, errorText(e));
     }
     catch (...) {
-        reportFailure(row.source, source, "unknown error");
+        reportFailure(row.source, source, QStringLiteral("unknown error"));
     }
     return {};
 }
 
-void Renderer::reportFailure(SourceId id, Source& source, const char* what) {
+void Renderer::reportFailure(SourceId id, Source& source, const QString& what) {
     if (source.failureReported)
         return;
     source.failureReported = true;
-    qWarning() << "renderer failed to read values of source" << id << ":" << what
-               << "(further failures of this source are not reported)";
+    qWarning().noquote() << "renderer failed to read values of source" << id << ":" << what
+                         << "(further failures of this source are not reported)";
 }
 
 void Renderer::run(const std::stop_token& stop) {
@@ -135,7 +138,7 @@ void Renderer::run(const std::stop_token& stop) {
             }
         }
         catch (const std::exception& e) {
-            qWarning() << "renderer dropped a command or frame:" << e.what();
+            qWarning().noquote() << "renderer dropped a command or frame:" << errorText(e);
         }
         catch (...) {
             qWarning() << "renderer dropped a command or frame: unknown error";

@@ -376,7 +376,7 @@ void WaveCanvas::paintRuler(QPainter& painter, const RulerMarks& marks) const {
         painter.setPen(QColor{kTickColor});
         painter.drawLine(
                 QLineF{x, static_cast<double>(kRulerHeight - kTickLengthPx), x, static_cast<double>(kRulerHeight)});
-        const auto text = QString::fromStdString(formatTime(t));
+        const auto text = QString::fromStdString(formatTime(t, step));
         const QRectF label{x + kTickLabelOffsetPx, 0, static_cast<double>(metrics.horizontalAdvance(text)),
                 static_cast<double>(kRulerHeight)};
         if (!covered(label)) {

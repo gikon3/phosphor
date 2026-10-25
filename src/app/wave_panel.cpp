@@ -177,6 +177,10 @@ QString WavePanel::valueText(std::size_t row) const {
     return values_->text(row);
 }
 
+QList<QAction*> WavePanel::timeActions() const {
+    return timeActions_;
+}
+
 void WavePanel::dragEnterEvent(QDragEnterEvent* event) {
     if (acceptsDrag(*event))
         event->acceptProposedAction();
@@ -219,21 +223,34 @@ void WavePanel::dropEvent(QDropEvent* event) {
 }
 
 void WavePanel::createActions() {
-    const auto add = [this](const QString& text, const QKeySequence& shortcut, Qt::ShortcutContext context) {
+    const auto add = [this](const QString& text, const QList<QKeySequence>& shortcuts, Qt::ShortcutContext context) {
         auto* action = new QAction{text, this};
-        action->setShortcut(shortcut);
+        action->setShortcuts(shortcuts);
         action->setShortcutContext(context);
         addAction(action);
         return action;
     };
-    // Масштаб действует во всём окне, а Delete — только в панели: в других виджетах он значит своё.
-    connect(add(tr("Zoom In"), Shortcuts::kZoomIn, Qt::WindowShortcut), &QAction::triggered, this,
-            [this] { zoomBy(WaveCanvas::kZoomStep); });
-    connect(add(tr("Zoom Out"), Shortcuts::kZoomOut, Qt::WindowShortcut), &QAction::triggered, this,
-            [this] { zoomBy(1.0 / WaveCanvas::kZoomStep); });
-    connect(add(tr("Zoom Fit"), Shortcuts::kZoomFit, Qt::WindowShortcut), &QAction::triggered, this,
+    // Масштаб и Delete действуют, только когда фокус в панели: клавиши цифрового блока без Ctrl и
+    // Delete в других виджетах окна значат своё. Курсоры в начало окна — во всём окне. Из меню
+    // действия срабатывают при любом фокусе.
+    const auto addTime = [&](const QString& text, const QList<QKeySequence>& shortcuts, Qt::ShortcutContext context) {
+        auto* action = add(text, shortcuts, context);
+        timeActions_.push_back(action);
+        return action;
+    };
+    connect(addTime(tr("Zoom In"),
+                    {Shortcuts::kZoomIn, Shortcuts::kZoomInPlus, Shortcuts::kZoomInShiftPlus, Shortcuts::kZoomInKeypad},
+                    Qt::WidgetWithChildrenShortcut),
+            &QAction::triggered, this, [this] { zoomBy(WaveCanvas::kZoomStep); });
+    connect(addTime(tr("Zoom Out"), {Shortcuts::kZoomOut, Shortcuts::kZoomOutKeypad}, Qt::WidgetWithChildrenShortcut),
+            &QAction::triggered, this, [this] { zoomBy(1.0 / WaveCanvas::kZoomStep); });
+    connect(addTime(tr("Zoom Fit"), {Shortcuts::kZoomFit}, Qt::WidgetWithChildrenShortcut), &QAction::triggered, this,
             &WavePanel::zoomFit);
-    connect(add(tr("Remove Rows"), Shortcuts::kRemoveRows, Qt::WidgetWithChildrenShortcut), &QAction::triggered, this,
+    connect(addTime(tr("Cursor A to Window Start"), {Shortcuts::kCursorAToWindowStart}, Qt::WindowShortcut),
+            &QAction::triggered, this, &WavePanel::moveCursorAToWindowStart);
+    connect(addTime(tr("Cursor B to Window Start"), {Shortcuts::kCursorBToWindowStart}, Qt::WindowShortcut),
+            &QAction::triggered, this, &WavePanel::moveCursorBToWindowStart);
+    connect(add(tr("Remove Rows"), {Shortcuts::kRemoveRows}, Qt::WidgetWithChildrenShortcut), &QAction::triggered, this,
             &WavePanel::removeSelectedRows);
 }
 
@@ -435,6 +452,14 @@ void WavePanel::zoomBy(double factor) {
 void WavePanel::zoomFit() {
     if (const auto total = session_->totalRange())
         applyWindow(*total);
+}
+
+void WavePanel::moveCursorAToWindowStart() {
+    view_->setCursorA(view_->window().begin);
+}
+
+void WavePanel::moveCursorBToWindowStart() {
+    view_->setCursorB(view_->window().begin);
 }
 
 void WavePanel::applyWindow(TimeWindow window) {
