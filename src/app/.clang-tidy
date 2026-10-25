@@ -1,0 +1,6 @@
+# Конфигурация для виджетов наследует корневую и отключает owning-memory: объект Qt
+# с родителем принадлежит родителю, поэтому `new` с последующей передачей родителю —
+# обычное владение Qt, а не утечка, и gsl::owner его не выражает.
+InheritParentConfig: true
+Checks: >
+  -cppcoreguidelines-owning-memory

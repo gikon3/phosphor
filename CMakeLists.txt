@@ -22,6 +22,7 @@ endif()
 # ---------------------------------------------------------------------------
 option(PHOSPHOR_INSTALL "Генерировать правила установки" ${PROJECT_IS_TOP_LEVEL})
 option(PHOSPHOR_BUILD_TESTS "Собирать тесты" ${PROJECT_IS_TOP_LEVEL})
+option(PHOSPHOR_BUILD_BENCH "Собирать стенд производительности" OFF)
 
 # ---------------------------------------------------------------------------
 # Общие настройки компилятора
@@ -48,11 +49,17 @@ include(GNUInstallDirs)
 # Зависимости
 # ---------------------------------------------------------------------------
 find_package(wasafe_vcd CONFIG REQUIRED)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets Test)
+qt_standard_project_setup()
 
 # ---------------------------------------------------------------------------
-# Основная библиотека
+# Цели
 # ---------------------------------------------------------------------------
 add_subdirectory(src)
+
+if(PHOSPHOR_BUILD_BENCH)
+    add_subdirectory(bench)
+endif()
 
 if(PHOSPHOR_BUILD_TESTS)
     add_subdirectory(tests)

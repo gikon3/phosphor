@@ -9,6 +9,7 @@
 /cmake-build-*/
 /out/
 /CMakeUserPresets.json
+/compile_commands.json
 
 # Conan
 /conan/
@@ -20,8 +21,9 @@
 /.idea/
 *.user
 
-# Сайдкар-индексы временных диаграмм
+# Сайдкар-индексы и дампы временных диаграмм
 /*.wsfstore
+/*.vcd
 
 # Макеты брейншторма
 /.superpowers/

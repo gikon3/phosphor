@@ -2,11 +2,11 @@
 
 #include <string_view>
 
-namespace WaSafe::Vcd::Version {
+namespace Phosphor::Version {
 
 inline constexpr int kMajor = @PROJECT_VERSION_MAJOR@;
 inline constexpr int kMinor = @PROJECT_VERSION_MINOR@;
 inline constexpr int kPatch = @PROJECT_VERSION_PATCH@;
 inline constexpr std::string_view kString{"@PROJECT_VERSION@"};
 
-}  // namespace WaSafe::Vcd::Version
+}  // namespace Phosphor::Version
