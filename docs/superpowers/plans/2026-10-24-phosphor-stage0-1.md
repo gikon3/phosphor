@@ -574,14 +574,14 @@ bxxxxxxxx "
     - кадр из 50 строк (первые 40 однобитных/шин + 10 `real` из `leafNodes`) на окнах «весь диапазон», «1/100», «1/10000», порог 100 мс каждый.
   - Отдаление на весь диапазон большого дампа может не уложиться в 100 мс до сводок этапа 2. Стенд должен честно показать FAIL, а не скрывать его.
 
-- [ ] **Step 1: Написать `gen_vcd.py`, проверить на малом размере.**
+- [x] **Step 1: Написать `gen_vcd.py`, проверить на малом размере.**
   - Запуск: `python3 tools/gen_vcd.py --out /tmp/g.vcd --signals 200 --size-mib 2 && build/Debug/bin/phosphor /tmp/g.vcd`.
   - Ожидается: файл ~2 МиБ, Phosphor открывает его без ошибок.
-- [ ] **Step 2: Написать `phosphor_bench.cpp` и `bench/CMakeLists.txt`.**
-- [ ] **Step 3: Прогнать стенд в Release.**
+- [x] **Step 2: Написать `phosphor_bench.cpp` и `bench/CMakeLists.txt`.**
+- [x] **Step 3: Прогнать стенд в Release.**
   - Запуск: `.venv/bin/conan install . --build=missing -s compiler.cppstd=23 -s build_type=Release`, затем `cmake --preset conan-release -DPHOSPHOR_BUILD_BENCH=ON`, `cmake --build --preset conan-release`, `python3 tools/gen_vcd.py --out /tmp/big.vcd`, `build/Release/bin/phosphor-bench /tmp/big.vcd --cache /tmp/phosphor-bench-cache`.
   - Ожидается: таблица напечатана, повторное открытие OK. Результаты кадров записать в README как исходную точку для этапа 2.
-- [ ] **Step 4: Стоп и коммит.** Показать итог и проверки, дождаться «продолжить», затем `git commit -m "add: генератор большого VCD и стенд замеров"`
+- [x] **Step 4: Стоп и коммит.** Показать итог и проверки, дождаться «продолжить», затем `git commit -m "add: генератор большого VCD и стенд замеров"`
 
 ---
 
