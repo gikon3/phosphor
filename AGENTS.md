@@ -45,9 +45,9 @@ ctest --preset conan-debug --output-on-failure
   ctest --preset conan-debug-tsan
   ```
 
-- Формат и статический анализ — скрипты `.claude/scripts/clang-format.sh [--check] [файлы]`
-  и `.claude/scripts/clang-tidy.sh -p build/Debug [файлы]` (без файлов — всё изменённое
-  относительно HEAD; `.hpp` проверяется через включающие его `.cpp`). Хук Claude Code сам
+- Формат и статический анализ — скрипты `tools/scripts/clang-format.sh [--check] [файлы]`
+  и `tools/scripts/clang-tidy.sh -p build/Debug [файлы]` (без файлов — всё изменённое
+  относительно HEAD; `.hpp` проверяется через включающие его `.cpp`). Хук агента сам
   форматирует правленые `.cpp/.h/.hpp`.
 - Стенд производительности — README, раздел «Стенд» (`tools/gen_vcd.py`, `phosphor-bench`,
   опция `PHOSPHOR_BUILD_BENCH`).
